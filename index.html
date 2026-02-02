@@ -1,63 +1,14 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Araç İletişim Kartı</title>
-    <style>
-        :root { --primary: #1a1a1a; --success: #2ecc71; --bg: #f0f2f5; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .card { background: white; width: 100%; max-width: 380px; border-radius: 35px; box-shadow: 0 30px 60px rgba(0,0,0,0.15); overflow: hidden; text-align: center; }
-        .card-header { background: linear-gradient(135deg, #2c3e50 0%, #000000 100%); padding: 50px 20px; color: white; }
-        .plaka-box { background: white; color: #1a1a1a; display: inline-flex; padding: 10px 25px; border-radius: 12px; font-weight: 800; font-size: 1.6rem; border: 3px solid #1a1a1a; margin-top: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; border-radius: 30px; font-size: 0.9rem; font-weight: 700; margin-top: 25px; }
-        .active { background: #e8f5e9; color: #1b5e20; border: 1px solid #c8e6c9; }
-        .passive { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
-        .content { padding: 35px 25px; }
-        .phone-btn { display: flex; align-items: center; justify-content: center; gap: 12px; background: var(--success); color: white; text-decoration: none; padding: 20px; border-radius: 20px; font-size: 1.3rem; font-weight: 700; box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3); transition: 0.3s; }
-        .hidden-msg { background: #f8f9fa; border: 1px dashed #ced4da; padding: 25px; border-radius: 20px; color: #6c757d; }
-    </style>
-</head>
-<body>
-
-<div class="card">
-    <div id="loading" style="padding: 60px; font-weight: bold;">VERİLER ÇEKİLİYOR...</div>
-
-    <div id="main-content" style="display: none;">
-        <div class="card-header">
-            <div style="font-size: 0.8rem; letter-spacing: 2px; opacity: 0.8;">ARAÇ BİLGİSİ</div>
-            <div id="plaka-display" class="plaka-box">-</div>
-        </div>
-
-        <div class="content">
-            <div id="badge-area"></div>
-            
-            <div id="active-area" style="display:none; margin-top: 15px;">
-                <p style="color: #636e72; margin-bottom: 25px;">Acil durumlar için sürücüye ulaşabilirsiniz:</p>
-                <a id="phone-btn" href="#" class="phone-btn">📞 SÜRÜCÜYÜ ARA</a>
-                <div id="phone-text" style="margin-top: 20px; font-weight: bold; font-size: 1.2rem;"></div>
-            </div>
-
-            <div id="passive-area" style="display:none; margin-top: 15px;">
-                <div class="hidden-msg">⚠️ Sürücü şu an iletişim bilgilerini gizledi.</div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
     const SHEET_ID = '1Hz-awgJc2LcniYFymdNpB8rdpBkAUWcZHQ4eaveSfzA';
-    // tq?tqx=out:json kısmı yerine daha temiz bir gviz kullanımı
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&tq=select%20A,B,C`;
+    // Sona eklenen Date.now() sayesinde tarayıcı her seferinde yeni veri çeker
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&tq=select%20A,B,C&cachebuster=${Date.now()}`;
 
     fetch(url)
         .then(res => res.text())
         .then(text => {
-            // Google'ın gönderdiği gereksiz metinleri temizleyip saf JSON'a çeviriyoruz
             const json = JSON.parse(text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1));
             const data = json.table.rows[0].c;
 
-            // Hücrelerden veriyi çekme (v: value, f: formatted value)
             const durum = data[0] ? data[0].v.toString().toUpperCase() : "";
             const telefon = data[1] ? (data[1].f || data[1].v).toString() : "";
             const plaka = data[2] ? data[2].v.toString() : "";
@@ -78,8 +29,5 @@
         })
         .catch(err => {
             document.getElementById('loading').innerText = "BAĞLANTI HATASI!";
-            console.error(err);
         });
 </script>
-</body>
-</html>
