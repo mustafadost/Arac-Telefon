@@ -1,33 +1,81 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Araç İletişim</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; width: 90%; max-width: 380px; border-radius: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; text-align: center; }
+        .header { background: linear-gradient(135deg, #2c3e50, #000000); padding: 40px 20px; color: white; }
+        .plaka { background: white; color: black; display: inline-block; padding: 10px 20px; border-radius: 10px; font-weight: bold; font-size: 1.5rem; border: 2px solid black; margin-top: 10px; }
+        .content { padding: 30px; }
+        .btn { display: block; background: #2ecc71; color: white; text-decoration: none; padding: 15px; border-radius: 15px; font-weight: bold; font-size: 1.2rem; margin-top: 20px; }
+        .status { display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-bottom: 10px; }
+        .acik { background: #e8f5e9; color: #1b5e20; }
+        .kapali { background: #ffebee; color: #b71c1c; }
+        #loading { padding: 50px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div id="loading">YÜKLENİYOR...</div>
+    <div id="main" style="display:none;">
+        <div class="header">
+            <div style="font-size: 0.8rem; opacity: 0.8;">ARAÇ SAHİBİNE ULAŞIN</div>
+            <div id="plaka-alanı" class="plaka"></div>
+        </div>
+        <div class="content">
+            <div id="durum-alanı"></div>
+            <div id="iletisim-alani">
+                <p>Acil bir durum varsa lütfen arayın:</p>
+                <a id="tel-link" href="#" class="btn">SÜRÜCÜYÜ ARA</a>
+                <p id="tel-no" style="font-weight: bold; margin-top: 15px;"></p>
+            </div>
+            <div id="mesaj-alani" style="display:none;">
+                <p>Araç sahibi şu an ulaşılamaz durumda.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    const SHEET_ID = '1Hz-awgJc2LcniYFymdNpB8rdpBkAUWcZHQ4eaveSfzA';
-    // Sona eklenen Date.now() sayesinde tarayıcı her seferinde yeni veri çeker
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&tq=select%20A,B,C&cachebuster=${Date.now()}`;
+    const ss_id = '1Hz-awgJc2LcniYFymdNpB8rdpBkAUWcZHQ4eaveSfzA';
+    const url = `https://docs.google.com/spreadsheets/d/${ss_id}/gviz/tq?tqx=out:json`;
 
     fetch(url)
         .then(res => res.text())
-        .then(text => {
-            const json = JSON.parse(text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1));
-            const data = json.table.rows[0].c;
+        .then(data => {
+            // Google verisini saf JSON'a çevir
+            const temp = data.substring(data.indexOf('(') + 1, data.lastIndexOf(')'));
+            const json = JSON.parse(temp);
+            const row = json.table.rows[0].c;
 
-            const durum = data[0] ? data[0].v.toString().toUpperCase() : "";
-            const telefon = data[1] ? (data[1].f || data[1].v).toString() : "";
-            const plaka = data[2] ? data[2].v.toString() : "";
+            const durum = row[0] ? row[0].v.toString().toUpperCase() : "";
+            const tel = row[1] ? (row[1].f || row[1].v).toString() : "";
+            const plaka = row[2] ? row[2].v.toString() : "";
 
             document.getElementById('loading').style.display = 'none';
-            document.getElementById('main-content').style.display = 'block';
-            document.getElementById('plaka-display').innerText = plaka;
+            document.getElementById('main').style.display = 'block';
+            document.getElementById('plaka-alanı').innerText = plaka;
 
             if (durum.includes("ACIK")) {
-                document.getElementById('badge-area').innerHTML = '<span class="status-badge active">● İLETİŞİME AÇIK</span>';
-                document.getElementById('phone-btn').href = "tel:" + telefon;
-                document.getElementById('phone-text').innerText = telefon;
-                document.getElementById('active-area').style.display = 'block';
+                document.getElementById('durum-alanı').innerHTML = '<span class="status acik">● İLETİŞİME AÇIK</span>';
+                document.getElementById('tel-link').href = "tel:" + tel;
+                document.getElementById('tel-no').innerText = tel;
+                document.getElementById('iletisim-alani').style.display = 'block';
+                document.getElementById('mesaj-alani').style.display = 'none';
             } else {
-                document.getElementById('badge-area').innerHTML = '<span class="status-badge passive">● ŞU AN MEŞGUL</span>';
-                document.getElementById('passive-area').style.display = 'block';
+                document.getElementById('durum-alanı').innerHTML = '<span class="status kapali">● ŞU AN MEŞGUL</span>';
+                document.getElementById('iletisim-alani').style.display = 'none';
+                document.getElementById('mesaj-alani').style.display = 'block';
             }
         })
-        .catch(err => {
-            document.getElementById('loading').innerText = "BAĞLANTI HATASI!";
+        .catch(e => {
+            document.getElementById('loading').innerText = "HATA OLUŞTU!";
         });
 </script>
+
+</body>
+</html>
