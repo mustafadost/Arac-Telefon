@@ -3,64 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Araç İletişim</title>
+    <title>Araç İletişim Kartı</title>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; width: 90%; max-width: 380px; border-radius: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; text-align: center; }
-        .header { background: #1a1a1a; padding: 40px 20px; color: white; }
-        .plaka { background: white; color: black; display: inline-block; padding: 10px 25px; border-radius: 12px; font-weight: bold; font-size: 1.6rem; border: 3px solid black; margin-top: 10px; }
-        .content { padding: 30px; }
-        .btn { display: block; background: #2ecc71; color: white; text-decoration: none; padding: 18px; border-radius: 15px; font-weight: bold; font-size: 1.2rem; margin-top: 20px; }
-        .status { display: inline-block; padding: 6px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-bottom: 10px; }
-        .acik { background: #e8f5e9; color: #1b5e20; }
-        .kapali { background: #ffebee; color: #b71c1c; }
+        :root { --primary: #1a1a1a; --success: #2ecc71; --bg: #f0f2f5; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .card { background: white; width: 100%; max-width: 380px; border-radius: 35px; box-shadow: 0 30px 60px rgba(0,0,0,0.15); overflow: hidden; text-align: center; }
+        .card-header { background: linear-gradient(135deg, #2c3e50 0%, #000000 100%); padding: 50px 20px; color: white; }
+        .plaka-box { background: white; color: #1a1a1a; display: inline-flex; padding: 10px 25px; border-radius: 12px; font-weight: 800; font-size: 1.6rem; border: 3px solid #1a1a1a; margin-top: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; border-radius: 30px; font-size: 0.9rem; font-weight: 700; margin-top: 25px; }
+        .active { background: #e8f5e9; color: #1b5e20; border: 1px solid #c8e6c9; }
+        .passive { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
+        .content { padding: 35px 25px; }
+        .phone-btn { display: flex; align-items: center; justify-content: center; gap: 12px; background: var(--success); color: white; text-decoration: none; padding: 20px; border-radius: 20px; font-size: 1.3rem; font-weight: 700; box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3); transition: 0.3s; }
+        .hidden-msg { background: #f8f9fa; border: 1px dashed #ced4da; padding: 25px; border-radius: 20px; color: #6c757d; }
     </style>
 </head>
 <body>
 
-<div class="card" id="main-card" style="display:none;">
-    <div class="header">
-        <div style="font-size: 0.8rem; opacity: 0.8;">ARAÇ SAHİBİ BİLGİSİ</div>
-        <div id="plaka-text" class="plaka">PLAKA</div>
-    </div>
-    <div class="content">
-        <div id="status-badge"></div>
-        <div id="open-area" style="display:none;">
-            <p>Acil bir durum için arayabilirsiniz:</p>
-            <a id="call-btn" href="#" class="btn">SÜRÜCÜYÜ ARA</a>
+<div class="card">
+    <div id="loading" style="padding: 60px; font-weight: bold;">GÜNCEL BİLGİLER ALINIYOR...</div>
+    <div id="main-content" style="display: none;">
+        <div class="card-header">
+            <div style="font-size: 0.8rem; letter-spacing: 2px; opacity: 0.8;">ARAÇ SAHİBİ BİLGİSİ</div>
+            <div id="plaka-display" class="plaka-box">-</div>
         </div>
-        <div id="closed-area" style="display:none;">
-            <p style="color: #666; background: #f8f9fa; padding: 20px; border-radius: 15px;">Sürücü şu an bilgilerini gizledi.</p>
+        <div class="content">
+            <div id="badge-area"></div>
+            <div id="active-area" style="display:none; margin-top: 15px;">
+                <p style="color: #636e72; margin-bottom: 25px;">Acil durumlar için sürücüye ulaşabilirsiniz:</p>
+                <a id="phone-btn" href="#" class="phone-btn">📞 SÜRÜCÜYÜ ARA</a>
+                <div id="phone-text" style="margin-top: 20px; font-weight: bold; font-size: 1.2rem; color: #2d3436;"></div>
+            </div>
+            <div id="passive-area" style="display:none; margin-top: 15px;">
+                <div class="hidden-msg">⚠️ Sürücü şu an iletişim bilgilerini gizledi.</div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    const ss_id = '1Hz-awgJc2LcniYFymdNpB8rdpBkAUWcZHQ4eaveSfzA';
-    const url = `https://docs.google.com/spreadsheets/d/${ss_id}/gviz/tq?tqx=out:json&tq=select%20*`;
+    // Sizin verdiğiniz yeni yayınlama (pubhtml) linki, ancak CSV formatında çekmek için sonunu değiştirdik
+    const pub_url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQNPdyjFuf614x2ZMlEmJGbPBuRjJvRPyuOA31BTW3aTHOpKUXOtskh6TlBC82zKq3WZWncAdHnfdQs/pub?output=csv';
 
-    fetch(url)
-        .then(res => res.text())
-        .then(data => {
-            const json = JSON.parse(data.substring(data.indexOf("{"), data.lastIndexOf("}") + 1));
-            const row = json.table.rows[0].c; // 2. satırı okur (Başlıktan sonraki ilk veri)
+    async function fetchData() {
+        try {
+            const response = await fetch(pub_url + '&cache=' + Date.now());
+            const data = await response.text();
+            
+            // CSV verisini parçala (Virgülle ayrılmış satırlar)
+            const rows = data.split('\n');
+            const values = rows[1].split(','); // 2. satırı al (A2, B2, C2)
 
-            const durum = row[0] ? row[0].v.toString().toUpperCase() : "";
-            const tel = row[1] ? (row[1].f || row[1].v).toString() : "";
-            const plaka = row[2] ? row[2].v.toString() : "";
+            const durum = values[0].replace(/"/g, "").toUpperCase().trim();
+            const telefon = values[1].replace(/"/g, "").trim();
+            const plaka = values[2].replace(/"/g, "").trim();
 
-            document.getElementById('main-card').style.display = 'block';
-            document.getElementById('plaka-text').innerText = plaka;
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('main-content').style.display = 'block';
+            document.getElementById('plaka-display').innerText = plaka;
 
             if (durum.includes("ACIK")) {
-                document.getElementById('status-badge').innerHTML = '<span class="status acik">● İLETİŞİME AÇIK</span>';
-                document.getElementById('call-btn').href = "tel:" + tel;
-                document.getElementById('open-area').style.display = 'block';
+                document.getElementById('badge-area').innerHTML = '<span class="status-badge active">● İLETİŞİME AÇIK</span>';
+                document.getElementById('phone-btn').href = "tel:" + telefon;
+                document.getElementById('phone-text').innerText = telefon;
+                document.getElementById('active-area').style.display = 'block';
+                document.getElementById('passive-area').style.display = 'none';
             } else {
-                document.getElementById('status-badge').innerHTML = '<span class="status kapali">● ŞU AN MEŞGUL</span>';
-                document.getElementById('closed-area').style.display = 'block';
+                document.getElementById('badge-area').innerHTML = '<span class="status-badge passive">● ŞU AN MEŞGUL</span>';
+                document.getElementById('passive-area').style.display = 'block';
+                document.getElementById('active-area').style.display = 'none';
             }
-        });
+        } catch (error) {
+            document.getElementById('loading').innerText = "VERİ ALINAMADI! Lütfen sayfayı yenileyin.";
+            console.error(error);
+        }
+    }
+
+    fetchData();
 </script>
 </body>
 </html>
