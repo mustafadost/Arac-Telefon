@@ -5,103 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Araç İletişim Kartı</title>
     <style>
-        :root { 
-            --primary: #1a1a1a; 
-            --accent: #007aff;
-            --success: #2ecc71; 
-            --bg: #f0f2f5; 
-        }
-        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        
-        .card { 
-            background: white; 
-            width: 100%; 
-            max-width: 380px; 
-            border-radius: 35px; 
-            box-shadow: 0 30px 60px rgba(0,0,0,0.12); 
-            overflow: hidden; 
-            text-align: center; 
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-
-        /* Premium Header Tasarımı */
-        .card-header { 
-            background: linear-gradient(135deg, #2c3e50 0%, #000000 100%); 
-            padding: 50px 20px; 
-            color: white; 
-            position: relative;
-        }
-        
-        .plaka-box { 
-            background: white; 
-            color: #1a1a1a; 
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 25px; 
-            border-radius: 12px; 
-            font-weight: 800; 
-            font-size: 1.6rem; 
-            border: 3px solid #1a1a1a; 
-            box-shadow: 0 8px 15px rgba(0,0,0,0.2); 
-            margin-top: 15px; 
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        .status-badge { 
-            display: inline-flex; 
-            align-items: center; 
-            gap: 8px; 
-            padding: 8px 20px; 
-            border-radius: 30px; 
-            font-size: 0.9rem; 
-            font-weight: 700; 
-            margin-top: 25px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+        :root { --primary: #1a1a1a; --accent: #007aff; --success: #2ecc71; --bg: #f0f2f5; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .card { background: white; width: 100%; max-width: 380px; border-radius: 35px; box-shadow: 0 30px 60px rgba(0,0,0,0.12); overflow: hidden; text-align: center; }
+        .card-header { background: linear-gradient(135deg, #2c3e50 0%, #000000 100%); padding: 50px 20px; color: white; }
+        .plaka-box { background: white; color: #1a1a1a; display: inline-flex; padding: 10px 25px; border-radius: 12px; font-weight: 800; font-size: 1.6rem; border: 3px solid #1a1a1a; margin-top: 15px; letter-spacing: 1px; }
+        .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; border-radius: 30px; font-size: 0.9rem; font-weight: 700; margin-top: 25px; }
         .active { background: #e8f5e9; color: #1b5e20; border: 1px solid #c8e6c9; }
         .passive { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
-
         .content { padding: 35px 25px; }
-
-        .phone-btn { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 12px; 
-            background: var(--success); 
-            color: white; 
-            text-decoration: none; 
-            padding: 20px; 
-            border-radius: 20px; 
-            font-size: 1.3rem; 
-            font-weight: 700; 
-            transition: all 0.3s ease; 
-            box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3);
-        }
-        .phone-btn:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(46, 204, 113, 0.4); }
-        .phone-btn:active { transform: scale(0.95); }
-
-        .hidden-msg { 
-            background: #f8f9fa; 
-            border: 1px dashed #ced4da; 
-            padding: 25px; 
-            border-radius: 20px; 
-            color: #6c757d; 
-            font-size: 1rem; 
-            line-height: 1.6; 
-        }
-
-        #loading-text { font-weight: 600; color: #1a1a1a; letter-spacing: 1px; }
+        .phone-btn { display: flex; align-items: center; justify-content: center; gap: 12px; background: var(--success); color: white; text-decoration: none; padding: 20px; border-radius: 20px; font-size: 1.3rem; font-weight: 700; box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3); transition: 0.3s; }
+        .hidden-msg { background: #f8f9fa; border: 1px dashed #ced4da; padding: 25px; border-radius: 20px; color: #6c757d; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <div id="loading-container" style="padding: 60px;">
-        <div id="loading-text">SİSTEM YÜKLENİYOR...</div>
+        <div id="loading-text">VERİLER DOĞRULANIYOR...</div>
     </div>
 
     <div id="main-content" style="display: none;">
@@ -109,22 +30,15 @@
             <div style="font-size: 0.85rem; font-weight: 600; opacity: 0.8; letter-spacing: 2px;">ARAÇ SAHİBİNE ULAŞIN</div>
             <div id="plaka-display" class="plaka-box">YÜKLENİYOR</div>
         </div>
-
         <div class="content">
             <div id="badge-area"></div>
-            
             <div id="active-area" style="display:none; margin-top: 10px;">
-                <p style="color: #636e72; margin-bottom: 30px; font-size: 1.05rem;">Aracı çekmem veya acil bir durum için aşağıdaki butonu kullanabilirsiniz.</p>
+                <p style="color: #636e72; margin-bottom: 30px;">Aracı çekmem veya acil bir durum için aşağıdaki butonu kullanabilirsiniz.</p>
                 <a id="phone-btn" href="#" class="phone-btn">📞 SÜRÜCÜYÜ ARA</a>
-                <div id="phone-number-text" style="margin-top: 20px; font-weight: 700; color: #2d3436; font-size: 1.2rem; letter-spacing: 1px;"></div>
+                <div id="phone-number-text" style="margin-top: 20px; font-weight: 700; color: #2d3436; font-size: 1.2rem;"></div>
             </div>
-
             <div id="passive-area" style="display:none; margin-top: 10px;">
-                <div class="hidden-msg">
-                    <span style="font-size: 2rem; display: block; margin-bottom: 10px;">⏳</span>
-                    <strong>Şu an ulaşılamıyor.</strong><br>
-                    Araç sahibi bilgilerini gizledi. Lütfen daha sonra tekrar deneyiniz.
-                </div>
+                <div class="hidden-msg"><strong>Şu an ulaşılamıyor.</strong><br>Araç sahibi bilgilerini gizledi.</div>
             </div>
         </div>
     </div>
@@ -132,40 +46,40 @@
 
 <script>
     const SHEET_ID = '1Hz-awgJc2LcniYFymdNpB8rdpBkAUWcZHQ4eaveSfzA';
-    const sheetName = 'Sayfa1'; 
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+    // Google'ın önbellek sorununu aşmak için rastgele bir sayı ekliyoruz
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&tq=select%20*&cachebust=${Math.random()}`;
 
     fetch(url)
         .then(res => res.text())
         .then(data => {
-            const jsonText = data.match(/google\.visualization\.Query\.setResponse\((.*)\)/)[1];
+            const jsonText = data.substring(data.indexOf("(") + 1, data.lastIndexOf(")"));
             const json = JSON.parse(jsonText);
             const row = json.table.rows[0].c;
 
-            const durum = row[0] ? row[0].v : "KAPALI";
-            const telefon = row[1] ? row[1].v : "";
-            const plaka = row[2] ? row[2].v : "PLAKA";
+            // Veriyi daha güvenli okuma yöntemi
+            const getVal = (idx) => (row[idx] ? (row[idx].f || row[idx].v || "").toString() : "");
+            
+            const durum = getVal(0).toUpperCase();
+            const telefon = getVal(1);
+            const plaka = getVal(2);
 
             document.getElementById('loading-container').style.display = 'none';
             document.getElementById('main-content').style.display = 'block';
-            document.getElementById('plaka-display').innerText = plaka;
+            document.getElementById('plaka-display').innerText = plaka || "34 NB 7055";
 
-            const badgeArea = document.getElementById('badge-area');
-
-            if (durum.toString().toUpperCase().includes('ACIK')) {
-                badgeArea.innerHTML = `<span class="status-badge active">● İLETİŞİME AÇIK</span>`;
+            if (durum.includes('ACIK')) {
+                document.getElementById('badge-area').innerHTML = `<span class="status-badge active">● İLETİŞİME AÇIK</span>`;
                 document.getElementById('phone-btn').href = "tel:" + telefon;
                 document.getElementById('phone-number-text').innerText = telefon;
                 document.getElementById('active-area').style.display = 'block';
             } else {
-                badgeArea.innerHTML = `<span class="status-badge passive">● ŞU AN MEŞGUL</span>`;
+                document.getElementById('badge-area').innerHTML = `<span class="status-badge passive">● ŞU AN MEŞGUL</span>`;
                 document.getElementById('passive-area').style.display = 'block';
             }
         })
         .catch(err => {
-            document.getElementById('loading-text').innerText = "BAĞLANTI HATASI!";
+            document.getElementById('loading-text').innerText = "BAĞLANTI HATASI! Lütfen sayfayı yenileyin.";
         });
 </script>
-
 </body>
 </html>
