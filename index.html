@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Araç İletişim Sistemi</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2f3; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; width: 90%; max-width: 380px; padding: 30px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; border-top: 8px solid #007bff; }
+        .status-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-bottom: 15px; }
+        .active { background: #d4edda; color: #155724; }
+        .passive { background: #f8d7da; color: #721c24; }
+        .phone-link { display: block; background: #28a745; color: white; text-decoration: none; padding: 18px; border-radius: 15px; font-size: 1.2rem; font-weight: bold; margin-top: 20px; transition: 0.3s; }
+        .hidden-msg { background: #fdf6e3; border: 1px solid #faebcc; padding: 20px; border-radius: 15px; color: #856404; margin-top: 20px; }
+        #loading { font-style: italic; color: #666; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div id="loading">Bilgiler doğrulanıyor...</div>
+    <div id="content" style="display: none;">
+        <div id="badge" class="status-badge"></div>
+        <h2 id="title">Araç Sahibi İletişim</h2>
+        
+        <div id="active-area">
+            <p>Aracı çekmem için bana ulaşabilirsiniz:</p>
+            <a id="phone-btn" href="#" class="phone-link">📞 Aramayı Başlat</a>
+        </div>
+
+        <div id="passive-area" class="hidden-msg" style="display:none;">
+            ⚠️ Araç sahibi şu an iletişim bilgilerini gizledi.
+        </div>
+    </div>
+</div>
+
+<script>
+    const SHEET_ID = '1Hz-awgJc2LcniYFymdNpB8rdpBkAUWcZHQ4eaveSfzA';
+    const sheetName = 'Sayfa1'; // Tablonuzun altındaki sekme adı Sayfa1 değilse burayı değiştirin
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+
+    fetch(url)
+        .then(res => res.text())
+        .then(data => {
+            // Veriyi temizle
+            const rawData = data.substring(47).slice(0, -2);
+            const json = JSON.parse(rawData);
+            
+            // A2 ve B2 hücrelerini al
+            const durum = json.table.rows[0].c[0].v; // A2
+            const telefon = json.table.rows[0].c[1].v; // B2
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+
+            if (durum && durum.toString().toUpperCase() === 'ACIK') {
+                document.getElementById('badge').innerText = "● Ulaşılabilir";
+                document.getElementById('badge').className = 'status-badge active
