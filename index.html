@@ -5,75 +5,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Araç İletişim</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; width: 90%; max-width: 380px; border-radius: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); overflow: hidden; text-align: center; }
+        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; width: 90%; max-width: 380px; border-radius: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; text-align: center; }
         .header { background: #1a1a1a; padding: 40px 20px; color: white; }
-        .plaka { background: white; color: black; display: inline-block; padding: 8px 20px; border-radius: 10px; font-weight: bold; font-size: 1.6rem; border: 2px solid black; margin-top: 10px; }
+        .plaka { background: white; color: black; display: inline-block; padding: 10px 25px; border-radius: 12px; font-weight: bold; font-size: 1.6rem; border: 3px solid black; margin-top: 10px; }
         .content { padding: 30px; }
-        .btn { display: block; background: #2ecc71; color: white; text-decoration: none; padding: 18px; border-radius: 15px; font-weight: bold; font-size: 1.2rem; margin-top: 20px; box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3); }
-        .status { display: inline-block; padding: 6px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; margin-bottom: 15px; }
-        .acik { background: #e8f5e9; color: #1b5e20; border: 1px solid #c8e6c9; }
-        .kapali { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
-        #loading { padding: 50px; font-weight: bold; color: #555; }
+        .btn { display: block; background: #2ecc71; color: white; text-decoration: none; padding: 18px; border-radius: 15px; font-weight: bold; font-size: 1.2rem; margin-top: 20px; }
+        .status { display: inline-block; padding: 6px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-bottom: 10px; }
+        .acik { background: #e8f5e9; color: #1b5e20; }
+        .kapali { background: #ffebee; color: #b71c1c; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div id="loading">VERİLER ALINIYOR...</div>
-    <div id="main" style="display:none;">
-        <div class="header">
-            <div style="font-size: 0.8rem; opacity: 0.8; letter-spacing: 1px;">ARAÇ SAHİBİ BİLGİSİ</div>
-            <div id="plaka-box" class="plaka">--</div>
+<div class="card" id="main-card" style="display:none;">
+    <div class="header">
+        <div style="font-size: 0.8rem; opacity: 0.8;">ARAÇ SAHİBİ BİLGİSİ</div>
+        <div id="plaka-text" class="plaka">PLAKA</div>
+    </div>
+    <div class="content">
+        <div id="status-badge"></div>
+        <div id="open-area" style="display:none;">
+            <p>Acil bir durum için arayabilirsiniz:</p>
+            <a id="call-btn" href="#" class="btn">SÜRÜCÜYÜ ARA</a>
         </div>
-        <div class="content">
-            <div id="durum-etiket"></div>
-            <div id="iletisim-var" style="display:none;">
-                <p style="color: #666;">Acil bir durumda aşağıdaki butona tıklayarak sürücüye ulaşabilirsiniz.</p>
-                <a id="tel-link" href="#" class="btn">📞 SÜRÜCÜYÜ ARA</a>
-                <p id="tel-no" style="font-weight: bold; margin-top: 15px; font-size: 1.1rem; color: #333;"></p>
-            </div>
-            <div id="iletisim-yok" style="display:none;">
-                <p style="color: #666; padding: 20px; background: #f8f9fa; border-radius: 15px;">Sürücü şu an iletişim bilgilerini gizlemeyi tercih etti.</p>
-            </div>
+        <div id="closed-area" style="display:none;">
+            <p style="color: #666; background: #f8f9fa; padding: 20px; border-radius: 15px;">Sürücü şu an bilgilerini gizledi.</p>
         </div>
     </div>
 </div>
 
 <script>
     const ss_id = '1Hz-awgJc2LcniYFymdNpB8rdpBkAUWcZHQ4eaveSfzA';
-    // Veriyi en saf haliyle çekmek için /pubhtml yerine /gviz/tq kullanıyoruz
-    const url = `https://docs.google.com/spreadsheets/d/${ss_id}/gviz/tq?tqx=out:json`;
+    const url = `https://docs.google.com/spreadsheets/d/${ss_id}/gviz/tq?tqx=out:json&tq=select%20*`;
 
     fetch(url)
         .then(res => res.text())
         .then(data => {
             const json = JSON.parse(data.substring(data.indexOf("{"), data.lastIndexOf("}") + 1));
-            const row = json.table.rows[0].c;
+            const row = json.table.rows[0].c; // 2. satırı okur (Başlıktan sonraki ilk veri)
 
-            const durum = row[0] ? row[0].v.toString().toUpperCase() : "KAPALI";
+            const durum = row[0] ? row[0].v.toString().toUpperCase() : "";
             const tel = row[1] ? (row[1].f || row[1].v).toString() : "";
             const plaka = row[2] ? row[2].v.toString() : "";
 
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('main').style.display = 'block';
-            document.getElementById('plaka-box').innerText = plaka;
+            document.getElementById('main-card').style.display = 'block';
+            document.getElementById('plaka-text').innerText = plaka;
 
             if (durum.includes("ACIK")) {
-                document.getElementById('durum-etiket').innerHTML = '<span class="status acik">● İLETİŞİME AÇIK</span>';
-                document.getElementById('tel-link').href = "tel:" + tel;
-                document.getElementById('tel-no').innerText = tel;
-                document.getElementById('iletisim-var').style.display = 'block';
+                document.getElementById('status-badge').innerHTML = '<span class="status acik">● İLETİŞİME AÇIK</span>';
+                document.getElementById('call-btn').href = "tel:" + tel;
+                document.getElementById('open-area').style.display = 'block';
             } else {
-                document.getElementById('durum-etiket').innerHTML = '<span class="status kapali">● ŞU AN MEŞGUL</span>';
-                document.getElementById('iletisim-yok').style.display = 'block';
+                document.getElementById('status-badge').innerHTML = '<span class="status kapali">● ŞU AN MEŞGUL</span>';
+                document.getElementById('closed-area').style.display = 'block';
             }
-        })
-        .catch(err => {
-            document.getElementById('loading').innerText = "BAĞLANTI HATASI!";
-            console.error(err);
         });
 </script>
-
 </body>
 </html>
