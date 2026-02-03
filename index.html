@@ -42,17 +42,21 @@
 </div>
 
 <script>
-    // Sizin verdiğiniz yeni yayınlama (pubhtml) linki, ancak CSV formatında çekmek için sonunu değiştirdik
+    // Linkteki ?id=... kısmını okur, yoksa varsayılan olarak 2. satırı alır
+    const urlParams = new URLSearchParams(window.location.search);
+    const rowId = urlParams.get('id') || 2; 
+
     const pub_url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQNPdyjFuf614x2ZMlEmJGbPBuRjJvRPyuOA31BTW3aTHOpKUXOtskh6TlBC82zKq3WZWncAdHnfdQs/pub?output=csv';
 
     async function fetchData() {
         try {
             const response = await fetch(pub_url + '&cache=' + Date.now());
             const data = await response.text();
-            
-            // CSV verisini parçala (Virgülle ayrılmış satırlar)
             const rows = data.split('\n');
-            const values = rows[1].split(','); // 2. satırı al (A2, B2, C2)
+            
+            // Linkten gelen ID'ye göre ilgili satırı seçer (id=2 ise rows[1])
+            const targetRow = rows[rowId - 1] || rows[1]; 
+            const values = targetRow.split(',');
 
             const durum = values[0].replace(/"/g, "").toUpperCase().trim();
             const telefon = values[1].replace(/"/g, "").trim();
@@ -67,19 +71,16 @@
                 document.getElementById('phone-btn').href = "tel:" + telefon;
                 document.getElementById('phone-text').innerText = telefon;
                 document.getElementById('active-area').style.display = 'block';
-                document.getElementById('passive-area').style.display = 'none';
             } else {
                 document.getElementById('badge-area').innerHTML = '<span class="status-badge passive">● ŞU AN MEŞGUL</span>';
                 document.getElementById('passive-area').style.display = 'block';
-                document.getElementById('active-area').style.display = 'none';
             }
         } catch (error) {
-            document.getElementById('loading').innerText = "VERİ ALINAMADI! Lütfen sayfayı yenileyin.";
             console.error(error);
         }
     }
-
     fetchData();
 </script>
 </body>
 </html>
+
