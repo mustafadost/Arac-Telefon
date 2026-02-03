@@ -15,10 +15,7 @@
         .status-badge { display: inline-flex; padding: 8px 20px; border-radius: 30px; font-size: 0.9rem; font-weight: 700; margin-bottom: 20px; }
         .active { background: #e8f5e9; color: #1b5e20; }
         .passive { background: #fff3e0; color: #e65100; }
-        
-        /* Sürücü Giriş Butonu Stili */
         .driver-login { margin-top: 30px; font-size: 0.85rem; color: #95a5a6; text-decoration: none; display: inline-block; border-bottom: 1px solid #ccc; padding-bottom: 2px; transition: 0.3s; }
-        .driver-login:hover { color: #34495e; border-color: #34495e; }
     </style>
 </head>
 <body>
@@ -38,14 +35,19 @@
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 20px; color: #6c757d;">⚠️ Sürücü şu an meşgul.</div>
             </div>
             
-            <a href="https://script.google.com/macros/s/AKfycbxvlkUar04xjdwdeofyQO4o5aEZQam5rW2HeByaOHZNPPEnmnS7DCQYfgxgLyNSNkK1/exec" class="driver-login">Sürücü Paneli Girişi</a>
+            <a id="panel-link" href="#" class="driver-login">Sürücü Paneli Girişi</a>
         </div>
     </div>
 </div>
 
 <script>
+    const PANEL_URL = "https://script.google.com/macros/s/AKfycbx04Tbos1O2SSJvXZlHuOOmpXZg-33wKgClVgvbm5XbMinD4yojWui3SDj6J-e6PxK-/exec";
     const urlParams = new URLSearchParams(window.location.search);
     const rowId = urlParams.get('id') || 2; 
+
+    // Sürücü giriş linkini ID ile hazırla
+    document.getElementById('panel-link').href = PANEL_URL + "?userid=" + rowId;
+
     const pub_url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQNPdyjFuf614x2ZMlEmJGbPBuRjJvRPyuOA31BTW3aTHOpKUXOtskh6TlBC82zKq3WZWncAdHnfdQs/pub?output=csv';
 
     async function fetchData() {
@@ -78,4 +80,3 @@
 </script>
 </body>
 </html>
-
