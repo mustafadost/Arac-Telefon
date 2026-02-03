@@ -3,80 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Araç İletişim Kartı</title>
+    <title>Araç İletişim</title>
     <style>
-        :root { --primary: #1a1a1a; --success: #2ecc71; --bg: #f0f2f5; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; flex-direction: column; }
-        .card { background: white; width: 100%; max-width: 380px; border-radius: 35px; box-shadow: 0 30px 60px rgba(0,0,0,0.15); overflow: hidden; text-align: center; }
-        .card-header { background: linear-gradient(135deg, #2c3e50 0%, #000000 100%); padding: 50px 20px; color: white; }
-        .plaka-box { background: white; color: #1a1a1a; display: inline-flex; padding: 10px 25px; border-radius: 12px; font-weight: 800; font-size: 1.6rem; border: 3px solid #1a1a1a; margin-top: 15px; }
-        .content { padding: 35px 25px; }
-        .phone-btn { display: flex; align-items: center; justify-content: center; gap: 12px; background: var(--success); color: white; text-decoration: none; padding: 20px; border-radius: 20px; font-size: 1.3rem; font-weight: 700; box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3); }
-        .status-badge { display: inline-flex; padding: 8px 20px; border-radius: 30px; font-size: 0.9rem; font-weight: 700; margin-bottom: 20px; }
-        .active { background: #e8f5e9; color: #1b5e20; }
-        .passive { background: #fff3e0; color: #e65100; }
-        .driver-login { margin-top: 30px; font-size: 0.85rem; color: #95a5a6; text-decoration: none; display: inline-block; border-bottom: 1px solid #ccc; padding-bottom: 2px; transition: 0.3s; }
+        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; width: 90%; max-width: 400px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; padding: 30px; }
+        .plaka { font-size: 2rem; font-weight: bold; border: 3px solid #000; display: inline-block; padding: 10px 20px; border-radius: 10px; margin: 20px 0; }
+        .btn { display: block; background: #2ecc71; color: white; text-decoration: none; padding: 15px; border-radius: 15px; font-weight: bold; font-size: 1.2rem; }
+        .btn-driver { margin-top: 30px; font-size: 0.8rem; color: #999; text-decoration: none; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div id="loading" style="padding: 60px; font-weight: bold;">YÜKLENİYOR...</div>
-    <div id="main-content" style="display: none;">
-        <div class="card-header">
-            <div id="plaka-display" class="plaka-box">-</div>
-        </div>
-        <div class="content">
-            <div id="badge-area"></div>
-            <div id="active-area" style="display:none;">
-                <a id="phone-btn" href="#" class="phone-btn">📞 SÜRÜCÜYÜ ARA</a>
-            </div>
-            <div id="passive-area" style="display:none;">
-                <div style="background: #f8f9fa; padding: 20px; border-radius: 20px; color: #6c757d;">⚠️ Sürücü şu an meşgul.</div>
-            </div>
-            
-            <a id="panel-link" href="#" class="driver-login">Sürücü Paneli Girişi</a>
-        </div>
-    </div>
+<div class="card" id="main-card" style="display:none;">
+    <div id="badge"></div>
+    <div class="plaka" id="plaka-text">...</div>
+    <div id="action-area"></div>
+    <a id="driver-link" href="#" class="btn-driver">Sürücü Paneli Girişi</a>
 </div>
+<div id="loading">Yükleniyor...</div>
 
 <script>
-    const PANEL_URL = "https://script.google.com/macros/s/AKfycbx04Tbos1O2SSJvXZlHuOOmpXZg-33wKgClVgvbm5XbMinD4yojWui3SDj6J-e6PxK-/exec";
+    // BURAYA YENİ ALDIĞIN APPS SCRIPT LİNKİNİ YAPIŞTIR
+    const APPS_SCRIPT_URL = "BURAYA_YENİ_DAĞITIM_LİNKİNİ_KOY";
+
     const urlParams = new URLSearchParams(window.location.search);
-    const rowId = urlParams.get('id') || 2; 
+    const rowId = urlParams.get('id') || 2;
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQNPdyjFuf614x2ZMlEmJGbPBuRjJvRPyuOA31BTW3aTHOpKUXOtskh6TlBC82zKq3WZWncAdHnfdQs/pub?output=csv';
 
-    // Sürücü giriş linkini ID ile hazırla
-    document.getElementById('panel-link').href = PANEL_URL + "?userid=" + rowId;
+    async function loadData() {
+        const res = await fetch(csvUrl + '&cache=' + Date.now());
+        const text = await res.text();
+        const rows = text.split('\n');
+        const data = rows[rowId - 1].split(',');
 
-    const pub_url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQNPdyjFuf614x2ZMlEmJGbPBuRjJvRPyuOA31BTW3aTHOpKUXOtskh6TlBC82zKq3WZWncAdHnfdQs/pub?output=csv';
+        const durum = data[0].replace(/"/g, "").trim();
+        const tel = data[1].replace(/"/g, "").trim();
+        const plaka = data[2].replace(/"/g, "").trim();
 
-    async function fetchData() {
-        try {
-            const response = await fetch(pub_url + '&cache=' + Date.now());
-            const data = await response.text();
-            const rows = data.split('\n');
-            const targetRow = rows[rowId - 1] || rows[1]; 
-            const values = targetRow.split(',');
+        document.getElementById('plaka-text').innerText = plaka;
+        document.getElementById('driver-link').href = APPS_SCRIPT_URL + "?userid=" + rowId;
 
-            const durum = values[0].replace(/"/g, "").toUpperCase().trim();
-            const telefon = values[1].replace(/"/g, "").trim();
-            const plaka = values[2].replace(/"/g, "").trim();
+        if (durum === "ACIK") {
+            document.getElementById('badge').innerHTML = "<b style='color:green'>● MÜSAİT</b>";
+            document.getElementById('action-area').innerHTML = `<a href="tel:${tel}" class="btn">SÜRÜCÜYÜ ARA</a>`;
+        } else {
+            document.getElementById('badge').innerHTML = "<b style='color:red'>● MEŞGUL</b>";
+            document.getElementById('action-area').innerHTML = "<p>Şu an müsait değil.</p>";
+        }
 
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('main-content').style.display = 'block';
-            document.getElementById('plaka-display').innerText = plaka;
-
-            if (durum.includes("ACIK")) {
-                document.getElementById('badge-area').innerHTML = '<span class="status-badge active">● MÜSAİT</span>';
-                document.getElementById('phone-btn').href = "tel:" + telefon;
-                document.getElementById('active-area').style.display = 'block';
-            } else {
-                document.getElementById('badge-area').innerHTML = '<span class="status-badge passive">● ŞU AN MEŞGUL</span>';
-                document.getElementById('passive-area').style.display = 'block';
-            }
-        } catch (e) { console.error(e); }
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('main-card').style.display = 'block';
     }
-    fetchData();
+    loadData();
 </script>
 </body>
 </html>
