@@ -3,58 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Araç İletişim</title>
+    <title>Araç İletişim Sistemi</title>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; width: 90%; max-width: 400px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; padding: 30px; }
-        .plaka { font-size: 2rem; font-weight: bold; border: 3px solid #000; display: inline-block; padding: 10px 20px; border-radius: 10px; margin: 20px 0; }
-        .btn { display: block; background: #2ecc71; color: white; text-decoration: none; padding: 15px; border-radius: 15px; font-weight: bold; font-size: 1.2rem; }
-        .btn-driver { margin-top: 30px; font-size: 0.8rem; color: #999; text-decoration: none; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; width: 90%; max-width: 400px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; padding: 30px; }
+        .plaka { font-size: 2.2rem; font-weight: bold; border: 3px solid #333; display: inline-block; padding: 10px 25px; border-radius: 12px; margin: 20px 0; background: #fff; color: #333; }
+        .btn { display: block; background: #2ecc71; color: white; text-decoration: none; padding: 18px; border-radius: 15px; font-weight: bold; font-size: 1.2rem; transition: 0.3s; }
+        .btn:hover { background: #27ae60; transform: scale(1.02); }
+        .btn-driver { display: inline-block; margin-top: 30px; font-size: 0.85rem; color: #95a5a6; text-decoration: none; border-bottom: 1px solid #bdc3c7; padding-bottom: 2px; }
+        #status-badge { font-size: 1rem; font-weight: bold; margin-bottom: 10px; }
+        .loading { font-size: 1.2rem; color: #7f8c8d; }
     </style>
 </head>
 <body>
 
+<div id="loading" class="loading">Bilgiler yükleniyor...</div>
+
 <div class="card" id="main-card" style="display:none;">
-    <div id="badge"></div>
-    <div class="plaka" id="plaka-text">...</div>
+    <div id="status-badge"></div>
+    <div class="plaka" id="plaka-text">---</div>
     <div id="action-area"></div>
+    
     <a id="driver-link" href="#" class="btn-driver">Sürücü Paneli Girişi</a>
 </div>
-<div id="loading">Yükleniyor...</div>
 
 <script>
-    // BURAYA YENİ ALDIĞIN APPS SCRIPT LİNKİNİ YAPIŞTIR
-    const APPS_SCRIPT_URL = "BURAYA_YENİ_DAĞITIM_LİNKİNİ_KOY";
+    /* AŞAĞIDAKİ TIRNAK İÇİNE APPS SCRIPT'TEN ALDIĞIN 
+       YENİ "EXEC" LİNKİNİ YAPIŞTIR 
+    */
+    const APPS_SCRIPT_URL = "BURAYA_KOPYALADIGIN_EXEC_LINKINI_YAPIŞTIR";
 
+    // URL'den ID parametresini al (Örn: ?id=3)
     const urlParams = new URLSearchParams(window.location.search);
-    const rowId = urlParams.get('id') || 2;
+    const rowId = urlParams.get('id') || "2"; // ID yoksa varsayılan 2. satır
+
+    // Google E-Tablo Yayınlanmış CSV Linkin
     const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQNPdyjFuf614x2ZMlEmJGbPBuRjJvRPyuOA31BTW3aTHOpKUXOtskh6TlBC82zKq3WZWncAdHnfdQs/pub?output=csv';
 
     async function loadData() {
-        const res = await fetch(csvUrl + '&cache=' + Date.now());
-        const text = await res.text();
-        const rows = text.split('\n');
-        const data = rows[rowId - 1].split(',');
+        try {
+            const res = await fetch(csvUrl + '&cache=' + Date.now());
+            const text = await res.text();
+            const rows = text.split('\n');
+            
+            // İlgili satırı bul ve temizle
+            const targetRow = rows[rowId - 1];
+            if (!targetRow) {
+                alert("Araç kaydı bulunamadı!");
+                return;
+            }
 
-        const durum = data[0].replace(/"/g, "").trim();
-        const tel = data[1].replace(/"/g, "").trim();
-        const plaka = data[2].replace(/"/g, "").trim();
+            const data = targetRow.split(',');
+            const durum = data[0].replace(/"/g, "").trim();
+            const tel = data[1].replace(/"/g, "").trim();
+            const plaka = data[2].replace(/"/g, "").trim();
 
-        document.getElementById('plaka-text').innerText = plaka;
-        document.getElementById('driver-link').href = APPS_SCRIPT_URL + "?userid=" + rowId;
+            // Sayfayı güncelle
+            document.getElementById('plaka-text').innerText = plaka;
+            
+            // SÜRÜCÜ LİNKİNİ OLUŞTUR (Kritik nokta burası)
+            document.getElementById('driver-link').href = APPS_SCRIPT_URL + "?userid=" + rowId;
 
-        if (durum === "ACIK") {
-            document.getElementById('badge').innerHTML = "<b style='color:green'>● MÜSAİT</b>";
-            document.getElementById('action-area').innerHTML = `<a href="tel:${tel}" class="btn">SÜRÜCÜYÜ ARA</a>`;
-        } else {
-            document.getElementById('badge').innerHTML = "<b style='color:red'>● MEŞGUL</b>";
-            document.getElementById('action-area').innerHTML = "<p>Şu an müsait değil.</p>";
+            if (durum === "ACIK") {
+                document.getElementById('status-badge').innerHTML = "<span style='color:#27ae60;'>● SÜRÜCÜ MÜSAİT</span>";
+                document.getElementById('action-area').innerHTML = `<a href="tel:${tel}" class="btn">SÜRÜCÜYÜ ARA</a>`;
+            } else {
+                document.getElementById('status-badge').innerHTML = "<span style='color:#e74c3c;'>● ŞU AN MEŞGUL</span>";
+                document.getElementById('action-area').innerHTML = "<p style='color:#7f8c8d;'>Sürücü şu an iletişim kabul etmiyor.</p>";
+            }
+
+            // Kartı göster
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('main-card').style.display = 'block';
+
+        } catch (error) {
+            console.error("Hata:", error);
+            document.getElementById('loading').innerText = "Veri çekilemedi, lütfen sayfayı yenileyin.";
         }
-
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('main-card').style.display = 'block';
     }
+
     loadData();
 </script>
+
 </body>
 </html>
