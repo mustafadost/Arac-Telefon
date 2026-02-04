@@ -8,42 +8,48 @@
         body { font-family: sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 300px; }
         .plaka { font-size: 2rem; font-weight: bold; background: #333; color: white; padding: 10px; border-radius: 10px; margin-bottom: 20px; }
-        .btn { display: block; background: #2ecc71; color: white; text-decoration: none; padding: 15px; border-radius: 15px; font-weight: bold; }
+        .btn { display: block; background: #2ecc71; color: white; text-decoration: none; padding: 15px; border-radius: 15px; font-weight: bold; margin-top: 20px; }
         .mesgul { color: #e74c3c; font-weight: bold; }
     </style>
 </head>
 <body>
 <div class="card">
-    <div id="loader">Yükleniyor...</div>
+    <div id="loader">Araç bilgileri alınıyor...</div>
     <div id="content" style="display:none;">
         <div class="plaka" id="p-box"></div>
         <div id="status"></div>
-        <a href="#" id="call-btn" class="btn" style="display:none; margin-top:20px;">SÜRÜCÜYÜ ARA</a>
+        <a href="#" id="call-btn" class="btn" style="display:none;">SÜRÜCÜYÜ ARA</a>
     </div>
 </div>
+
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbylNPS46odOds-OPC46N9It9qChfASCRv3g2u2zM77gBRLOn5iB0sqKtum93U5ebOmp/exec";
-    
-    window.onload = function() {
+    // VERİ GELDİĞİNDE ÇALIŞACAK FONKSİYON
+    function veriyiIsle(data) {
         const id = new URLSearchParams(window.location.search).get('id');
-        fetch(SCRIPT_URL + "?id=" + id)
-            .then(r => r.json())
-            .then(data => {
-                const a = data.find(x => x.id.toString() === id);
-                document.getElementById('loader').style.display = 'none';
-                document.getElementById('content').style.display = 'block';
-                if(a) {
-                    document.getElementById('p-box').innerText = a.plaka;
-                    if(a.durum === "ACIK") {
-                        document.getElementById('status').innerText = "● MÜSAİT";
-                        document.getElementById('call-btn').style.display = 'block';
-                        document.getElementById('call-btn').href = "tel:" + a.tel;
-                    } else {
-                        document.getElementById('status').innerHTML = "<span class='mesgul'>○ ŞU AN MEŞGUL</span>";
-                    }
-                } else { document.getElementById('loader').innerText = "Araç bulunamadı."; }
-            }).catch(() => document.getElementById('loader').innerText = "Bağlantı Hatası!");
-    };
+        const a = data.find(x => x.id.toString() === id);
+        
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('content').style.display = 'block';
+
+        if(a) {
+            document.getElementById('p-box').innerText = a.plaka;
+            if(a.durum === "ACIK") {
+                document.getElementById('status').innerText = "● MÜSAİT";
+                document.getElementById('call-btn').style.display = 'block';
+                document.getElementById('call-btn').href = "tel:" + a.tel;
+            } else {
+                document.getElementById('status').innerHTML = "<span class='mesgul'>○ ŞU AN MEŞGUL</span>";
+            }
+        } else {
+            document.getElementById('loader').innerText = "Araç bulunamadı.";
+        }
+    }
+
+    // GOOGLE SCRIPT'İ ÇAĞIRAN KISIM
+    const script = document.createElement('script');
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzy6-dPqSUUFc1w_Sv_ln9DXQoPOqkDyjyaZnSyuVvR4KB1qDfUQodbYCmU2jNcGEP6/exec";
+    script.src = SCRIPT_URL + "?callback=veriyiIsle";
+    document.body.appendChild(script);
 </script>
 </body>
 </html>
