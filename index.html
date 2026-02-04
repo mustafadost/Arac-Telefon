@@ -3,96 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Araç İletişim Sistemi</title>
+    <title>Araç Sürücü İletişim</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; width: 90%; max-width: 400px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; padding: 30px; }
-        .plaka { font-size: 2.2rem; font-weight: bold; border: 3px solid #333; display: inline-block; padding: 10px 25px; border-radius: 12px; margin: 20px 0; background: #fff; }
-        .btn { display: block; background: #2ecc71; color: white; text-decoration: none; padding: 18px; border-radius: 15px; font-weight: bold; font-size: 1.2rem; transition: 0.3s; margin-top: 10px; }
-        .btn:hover { background: #27ae60; }
-        .btn-driver { display: inline-block; margin-top: 30px; font-size: 0.85rem; color: #95a5a6; text-decoration: none; border-bottom: 1px solid #bdc3c7; }
-        #status-badge { font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; }
-        #loading { font-weight: bold; color: #7f8c8d; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 350px; }
+        .plaka { font-size: 2rem; font-weight: bold; background: #333; color: white; padding: 10px; border-radius: 10px; margin-bottom: 20px; border: 3px solid #000; }
+        .durum { font-weight: bold; margin-bottom: 20px; }
+        .acik { color: #2ecc71; }
+        .kapali { color: #e74c3c; }
+        .btn-ara { display: block; background: #2ecc71; color: white; text-decoration: none; padding: 15px; border-radius: 15px; font-weight: bold; font-size: 1.2rem; transition: 0.3s; }
+        .btn-ara:hover { background: #27ae60; }
+        .gizli { display: none; }
+        #loader { font-size: 1.2rem; color: #7f8c8d; }
     </style>
 </head>
 <body>
 
-<div id="loading">Sistem yükleniyor...</div>
-
-<div class="card" id="main-card" style="display:none;">
-    <div id="status-badge"></div>
-    <div class="plaka" id="plaka-text">---</div>
-    <div id="action-area"></div>
+<div class="card" id="main-card">
+    <div id="loader">Araç bilgileri alınıyor...</div>
     
-    <a id="driver-link" href="#" class="btn-driver">Sürücü Paneli Girişi</a>
+    <div id="content" class="gizli">
+        <div class="plaka" id="plaka-no">---</div>
+        <div id="status-box" class="durum"></div>
+        <a href="#" id="call-btn" class="btn-ara gizli">SÜRÜCÜYÜ ARA</a>
+        <p id="msg" style="color: #7f8c8d; font-size: 0.9rem;"></p>
+    </div>
 </div>
 
 <script>
-    // 1. Senin çalışan güncel Apps Script linkin
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxdDpFGuUiiKyTImzpeWytvnSssLwmkACrb9uNmqDP7z821u6jb8nhr2F-LObxh-bAp/exec";
+    // BURAYI KENDİ APPS SCRIPT URL'NLE DEĞİŞTİR
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxdDpFGuUiiKyTImzpeWytvnSssLwmkACrb9uNmqDP7z821u6jb8nhr2F-LObxh-bAp/exec";
 
-    // 2. Google E-Tablo CSV linkin
-    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQNPdyjFuf614x2ZMlEmJGbPBuRjJvRPyuOA31BTW3aTHOpKUXOtskh6TlBC82zKq3WZWncAdHnfdQs/pub?output=csv';
+    window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const aracId = urlParams.get('id');
 
-    // Linkten 'id' parametresini al (Yoksa varsayılan olarak 2 yap)
-    const urlParams = new URLSearchParams(window.location.search);
-    const rowId = urlParams.get('id') || "2"; 
-
-    async function loadData() {
-        try {
-            // Veriyi çek ve önbelleği temizle
-            const res = await fetch(csvUrl + '&cache=' + Date.now());
-            const text = await res.text();
-            const rows = text.split('\n');
-            
-            // İlgili satırı bul ve parçala
-            const data = rows[rowId - 1].split(',');
-
-            const durum = data[0].replace(/"/g, "").trim();
-            const tel = data[1].replace(/"/g, "").trim();
-            const plaka = data[2].replace(/"/g, "").trim();
-
-            // Sayfadaki bilgileri doldur
-            document.getElementById('plaka-text').innerText = plaka;
-            
-            // Sürücü paneli butonuna ?userid= ekleyerek linki oluştur (KRİTİK NOKTA)
-            document.getElementById('driver-link').href = APPS_SCRIPT_URL + "?userid=" + rowId;
-
-            if (durum === "ACIK") {
-                document.getElementById('status-badge').innerHTML = "<span style='color:green;'>● SÜRÜCÜ MÜSAİT</span>";
-                document.getElementById('action-area').innerHTML = `<a href="tel:${tel}" class="btn">SÜRÜCÜYÜ ARA</a>`;
-            } else {
-                document.getElementById('status-badge').innerHTML = "<span style='color:red;'>● SÜRÜCÜ MEŞGUL</span>";
-                document.getElementById('action-area').innerHTML = "<p style='color:#7f8c8d;'>Sürücü şu anda görüşme kabul etmiyor.</p>";
-            }
-
-            // Yükleme ekranını kapat, ana kartı aç
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('main-card').style.display = 'block';
-
-        } catch (e) {
-            document.getElementById('loading').innerText = "Hata: Veri yüklenemedi. Lütfen internetinizi kontrol edin.";
-            console.error(e);
+        if (!aracId) {
+            document.getElementById('loader').innerText = "Hata: QR Kod geçersiz (ID yok).";
+            return;
         }
-    }
 
-    // Fonksiyonu çalıştır
-    loadData();
+        // Verileri Google Sheets'ten çek
+        fetch(SCRIPT_URL)
+            .then(res => res.json())
+            .then(data => {
+                const arac = data.find(x => x.id.toString() === aracId.toString());
+                
+                document.getElementById('loader').classList.add('gizli');
+                document.getElementById('content').classList.remove('gizli');
+
+                if (arac) {
+                    document.getElementById('plaka-no').innerText = arac.plaka;
+                    
+                    if (arac.durum === "ACIK") {
+                        document.getElementById('status-box').innerText = "● MÜSAİT";
+                        document.getElementById('status-box').classList.add('acik');
+                        document.getElementById('call-btn').classList.remove('gizli');
+                        document.getElementById('call-btn').href = "tel:" + arac.tel;
+                        document.getElementById('msg').innerText = "Sürücü şu an aranabilir durumdadır.";
+                    } else {
+                        document.getElementById('status-box').innerText = "○ ŞU AN MEŞGUL";
+                        document.getElementById('status-box').classList.add('kapali');
+                        document.getElementById('msg').innerText = "Sürücü şu an aranmak istemiyor.";
+                    }
+                } else {
+                    document.getElementById('plaka-no').innerText = "KAYITSIZ";
+                    document.getElementById('msg').innerText = "Bu ID'ye ait araç bulunamadı.";
+                }
+            })
+            .catch(err => {
+                document.getElementById('loader').innerText = "Bağlantı hatası oluştu.";
+            });
+    };
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
