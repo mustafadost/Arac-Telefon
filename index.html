@@ -1,60 +1,67 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sürücü İletişim</title>
     <style>
-        body { font-family: sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; text-align: center; }
-        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 280px; }
+        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 280px; }
         .plaka { font-size: 1.8rem; font-weight: bold; background: #333; color: white; padding: 10px; border-radius: 10px; margin-bottom: 15px; }
-        .btn { display: block; background: #2ecc71; color: white; text-decoration: none; padding: 15px; border-radius: 12px; font-weight: bold; margin-top: 15px; }
+        .btn { display: none; background: #2ecc71; color: white; text-decoration: none; padding: 15px; border-radius: 12px; font-weight: bold; margin-top: 15px; }
+        .error { color: #e74c3c; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="card">
-        <div id="loader">Bilgiler kontrol ediliyor...</div>
+        <div id="loader">🔎 Araç bilgisi sorgulanıyor...</div>
         <div id="content" style="display:none;">
             <div class="plaka" id="p-box"></div>
             <div id="status-text"></div>
-            <a href="#" id="call-btn" class="btn" style="display:none;">SÜRÜCÜYÜ ARA</a>
+            <a href="#" id="call-btn" class="btn">SÜRÜCÜYÜ ARA</a>
         </div>
     </div>
 
 <script>
-    // VERİYİ ALAN FONKSİYON
-    function veriyiIsle(data) {
-        console.log("Veri geldi:", data);
-        const urlParams = new URLSearchParams(window.location.search);
-        const id = urlParams.get('id');
-        const arac = data.find(x => x.id.toString() === id);
-        
-        document.getElementById('loader').style.display = 'none';
-        document.getElementById('content').style.display = 'block';
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx5992FOS8kp_xzIbXJ808q-elQRuVDjCly0pyYPSjYBgdtU3qiYZl2u7NVh9eJ5yet/exec"; // <--- Yeni link buraya!
 
-        if(arac) {
-            document.getElementById('p-box').innerText = arac.plaka;
-            if(arac.durum === "ACIK") {
-                document.getElementById('status-text').innerText = "● MÜSAİT";
-                document.getElementById('status-text').style.color = "#2ecc71";
-                document.getElementById('call-btn').style.display = 'block';
-                document.getElementById('call-btn').href = "tel:" + arac.tel;
+    async function veriCek() {
+        const id = new URLSearchParams(window.location.search).get('id');
+        if (!id) {
+            document.getElementById('loader').innerText = "Hata: QR Kod Geçersiz!";
+            return;
+        }
+
+        try {
+            // Google Script'ten veriyi çekiyoruz
+            const response = await fetch(SCRIPT_URL);
+            const data = await response.json();
+            const arac = data.find(x => x.id.toString() === id.toString());
+
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+
+            if (arac) {
+                document.getElementById('p-box').innerText = arac.plaka;
+                if (arac.durum === "ACIK") {
+                    document.getElementById('status-text').innerText = "● MÜSAİT";
+                    document.getElementById('status-text').style.color = "#2ecc71";
+                    document.getElementById('call-btn').style.display = 'block';
+                    document.getElementById('call-btn').href = "tel:" + arac.tel;
+                } else {
+                    document.getElementById('status-text').innerText = "○ ŞU AN MEŞGUL";
+                    document.getElementById('status-text').style.color = "#e74c3c";
+                }
             } else {
-                document.getElementById('status-text').innerText = "○ ŞU AN MEŞGUL";
-                document.getElementById('status-text').style.color = "#e74c3c";
+                document.getElementById('loader').innerHTML = "<span class='error'>Araç Kaydı Bulunamadı!</span>";
             }
-        } else {
-            document.getElementById('loader').innerText = "Araç Bulunamadı!";
+        } catch (err) {
+            console.error(err);
+            document.getElementById('loader').innerHTML = "<span class='error'>Bağlantı Hatası!</span><br><small>Lütfen internetinizi kontrol edin.</small>";
         }
     }
 
-    // SCRIPT'İ ÇAĞIRAN KISIM (Buraya 2. adımda aldığın YENİ linki koy)
-    const script = document.createElement('script');
-    const YENI_URL = "https://script.google.com/macros/s/AKfycbxgzBsJ9rTA9FkgQKsblEUv4vQvdteex_bI7zPvX6o5MO2HsuRB3RcAb3kpNnnHHDUn/exec"; 
-    script.src = YENI_URL + "?callback=veriyiIsle";
-    
-    // Hata kontrolü için
-    script.onerror = function() { document.getElementById('loader').innerText = "Bağlantı Hatası!"; };
-    document.body.appendChild(script);
+    veriCek();
 </script>
 </body>
 </html>
