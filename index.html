@@ -3,52 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sürücü İletişim</title>
     <style>
-        body { font-family: sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 300px; }
-        .plaka { font-size: 2rem; font-weight: bold; background: #333; color: white; padding: 10px; border-radius: 10px; margin-bottom: 20px; }
-        .btn { display: block; background: #2ecc71; color: white; text-decoration: none; padding: 15px; border-radius: 15px; font-weight: bold; margin-top: 20px; }
-        .mesgul { color: #e74c3c; font-weight: bold; }
+        body { font-family: sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; text-align: center; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 280px; }
+        .plaka { font-size: 1.8rem; font-weight: bold; background: #333; color: white; padding: 10px; border-radius: 10px; margin-bottom: 15px; }
+        .btn { display: block; background: #2ecc71; color: white; text-decoration: none; padding: 15px; border-radius: 12px; font-weight: bold; margin-top: 15px; }
     </style>
 </head>
 <body>
-<div class="card">
-    <div id="loader">Araç bilgileri alınıyor...</div>
-    <div id="content" style="display:none;">
-        <div class="plaka" id="p-box"></div>
-        <div id="status"></div>
-        <a href="#" id="call-btn" class="btn" style="display:none;">SÜRÜCÜYÜ ARA</a>
+    <div class="card">
+        <div id="loader">Bilgiler kontrol ediliyor...</div>
+        <div id="content" style="display:none;">
+            <div class="plaka" id="p-box"></div>
+            <div id="status-text"></div>
+            <a href="#" id="call-btn" class="btn" style="display:none;">SÜRÜCÜYÜ ARA</a>
+        </div>
     </div>
-</div>
 
 <script>
-    // VERİ GELDİĞİNDE ÇALIŞACAK FONKSİYON
+    // VERİYİ ALAN FONKSİYON
     function veriyiIsle(data) {
-        const id = new URLSearchParams(window.location.search).get('id');
-        const a = data.find(x => x.id.toString() === id);
+        console.log("Veri geldi:", data);
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get('id');
+        const arac = data.find(x => x.id.toString() === id);
         
         document.getElementById('loader').style.display = 'none';
         document.getElementById('content').style.display = 'block';
 
-        if(a) {
-            document.getElementById('p-box').innerText = a.plaka;
-            if(a.durum === "ACIK") {
-                document.getElementById('status').innerText = "● MÜSAİT";
+        if(arac) {
+            document.getElementById('p-box').innerText = arac.plaka;
+            if(arac.durum === "ACIK") {
+                document.getElementById('status-text').innerText = "● MÜSAİT";
+                document.getElementById('status-text').style.color = "#2ecc71";
                 document.getElementById('call-btn').style.display = 'block';
-                document.getElementById('call-btn').href = "tel:" + a.tel;
+                document.getElementById('call-btn').href = "tel:" + arac.tel;
             } else {
-                document.getElementById('status').innerHTML = "<span class='mesgul'>○ ŞU AN MEŞGUL</span>";
+                document.getElementById('status-text').innerText = "○ ŞU AN MEŞGUL";
+                document.getElementById('status-text').style.color = "#e74c3c";
             }
         } else {
-            document.getElementById('loader').innerText = "Araç bulunamadı.";
+            document.getElementById('loader').innerText = "Araç Bulunamadı!";
         }
     }
 
-    // GOOGLE SCRIPT'İ ÇAĞIRAN KISIM
+    // SCRIPT'İ ÇAĞIRAN KISIM (Buraya 2. adımda aldığın YENİ linki koy)
     const script = document.createElement('script');
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzy6-dPqSUUFc1w_Sv_ln9DXQoPOqkDyjyaZnSyuVvR4KB1qDfUQodbYCmU2jNcGEP6/exec";
-    script.src = SCRIPT_URL + "?callback=veriyiIsle";
+    const YENI_URL = "https://script.google.com/macros/s/AKfycbxgzBsJ9rTA9FkgQKsblEUv4vQvdteex_bI7zPvX6o5MO2HsuRB3RcAb3kpNnnHHDUn/exec"; 
+    script.src = YENI_URL + "?callback=veriyiIsle";
+    
+    // Hata kontrolü için
+    script.onerror = function() { document.getElementById('loader').innerText = "Bağlantı Hatası!"; };
     document.body.appendChild(script);
 </script>
 </body>
