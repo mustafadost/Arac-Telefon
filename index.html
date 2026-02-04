@@ -9,11 +9,12 @@
         .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 280px; }
         .plaka { font-size: 1.8rem; font-weight: bold; background: #333; color: white; padding: 10px; border-radius: 10px; margin-bottom: 15px; }
         .btn { display: none; background: #2ecc71; color: white; text-decoration: none; padding: 15px; border-radius: 12px; font-weight: bold; margin-top: 15px; }
+        .error { color: #e74c3c; font-size: 0.9rem; }
     </style>
 </head>
 <body>
     <div class="card">
-        <div id="loader">🗂 Veri okunuyor...</div>
+        <div id="loader">🔄 Veriler işleniyor...</div>
         <div id="content" style="display:none;">
             <div class="plaka" id="p-box"></div>
             <div id="status-text"></div>
@@ -22,45 +23,55 @@
     </div>
 
 <script>
-    // Senin ekran görüntüsündeki çalışan linkin
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx5992FOS8kp_xzIbXJ808q-elQRuVDjCly0pyYPSjYBgdtU3qiYZl2u7NVh9eJ5yet/exec";
 
-    async function veriGetir() {
+    function veriCek() {
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get('id');
 
-        try {
-            // "follow" ayarı Google'ın yönlendirme hatalarını aşar
-            const response = await fetch(SCRIPT_URL, { redirect: "follow" });
-            const data = await response.json();
-            
-            // Veri geldiğinde loader'ı kapat
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('content').style.display = 'block';
-
-            const arac = data.find(x => x.id.toString() === id);
-
-            if (arac) {
-                document.getElementById('p-box').innerText = arac.plaka;
-                if (arac.durum === "ACIK") {
-                    document.getElementById('status-text').innerText = "● MÜSAİT";
-                    document.getElementById('status-text').style.color = "#2ecc71";
-                    document.getElementById('call-btn').style.display = 'block';
-                    document.getElementById('call-btn').href = "tel:" + arac.tel;
-                } else {
-                    document.getElementById('status-text').innerText = "○ ŞU AN MEŞGUL";
-                    document.getElementById('status-text').style.color = "#e74c3c";
-                }
-            } else {
-                document.getElementById('loader').innerText = "ID Bulunamadı!";
-            }
-        } catch (err) {
-            console.error(err);
-            document.getElementById('loader').innerText = "Bağlantı Kurulamadı!";
+        if (!id) {
+            document.getElementById('loader').innerText = "Hata: QR Kod Geçersiz (ID eksik)!";
+            return;
         }
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", SCRIPT_URL, true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        const arac = data.find(x => x.id.toString() === id.toString());
+                        
+                        document.getElementById('loader').style.display = 'none';
+                        document.getElementById('content').style.display = 'block';
+
+                        if (arac) {
+                            document.getElementById('p-box').innerText = arac.plaka;
+                            if (arac.durum === "ACIK") {
+                                document.getElementById('status-text').innerText = "● MÜSAİT";
+                                document.getElementById('status-text').style.color = "#2ecc71";
+                                document.getElementById('call-btn').style.display = 'block';
+                                document.getElementById('call-btn').href = "tel:" + arac.tel;
+                            } else {
+                                document.getElementById('status-text').innerText = "○ ŞU AN MEŞGUL";
+                                document.getElementById('status-text').style.color = "#e74c3c";
+                            }
+                        } else {
+                            document.getElementById('loader').innerHTML = "<span class='error'>Araç bulunamadı!</span>";
+                        }
+                    } catch (e) {
+                        document.getElementById('loader').innerHTML = "<span class='error'>Veri okuma hatası!</span>";
+                    }
+                } else {
+                    document.getElementById('loader').innerHTML = "<span class='error'>Bağlantı başarısız!</span>";
+                }
+            }
+        };
+        xhr.send();
     }
 
-    veriGetir();
+    veriCek();
 </script>
 </body>
 </html>
