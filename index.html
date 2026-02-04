@@ -7,25 +7,26 @@
     <style>
         body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 280px; }
-        .plaka { font-size: 1.8rem; font-weight: bold; background: #333; color: white; padding: 10px; border-radius: 10px; margin-bottom: 15px; border: 2px solid #000; }
+        .plaka { font-size: 1.8rem; font-weight: bold; background: #333; color: white; padding: 10px; border-radius: 10px; margin-bottom: 15px; border: 3px solid #000; }
         .btn { display: none; background: #2ecc71; color: white; text-decoration: none; padding: 15px; border-radius: 12px; font-weight: bold; margin-top: 15px; }
-        .mesgul { color: #e74c3c; font-weight: bold; }
+        #debug-info { font-size: 10px; color: #aaa; margin-top: 15px; }
     </style>
 </head>
 <body>
     <div class="card">
-        <div id="loader">🔄 Araç Bilgisi Sorgulanıyor...</div>
+        <div id="loader">🔄 Araç Sorgulanıyor...</div>
         <div id="content" style="display:none;">
-            <div class="plaka" id="p-box"></div>
-            <div id="status-text"></div>
+            <div class="plaka" id="p-box">---</div>
+            <div id="status-text" style="font-weight: bold;"></div>
             <a href="#" id="call-btn" class="btn">SÜRÜCÜYÜ ARA</a>
         </div>
+        <div id="debug-info"></div>
     </div>
 
 <script>
-    // Google Script'ten veri geldiğinde bu fonksiyon otomatik çalışacak
+    // GOOGLE SCRIPT'TEN VERİ GELDİĞİNDE ÇALIŞAN FONKSİYON
     function veriyiYazdir(data) {
-        console.log("Veri başarıyla alındı.");
+        console.log("Veri ulaştı:", data);
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get('id');
         const arac = data.find(x => x.id.toString() === id);
@@ -41,24 +42,23 @@
                 document.getElementById('call-btn').style.display = 'block';
                 document.getElementById('call-btn').href = "tel:" + arac.tel;
             } else {
-                document.getElementById('status-text').innerHTML = "<span class='mesgul'>○ ŞU AN MEŞGUL</span>";
+                document.getElementById('status-text').innerText = "○ ŞU AN MEŞGUL";
+                document.getElementById('status-text').style.color = "#e74c3c";
             }
         } else {
             document.getElementById('loader').innerText = "Hata: Araç Bulunamadı!";
         }
     }
 
-    // Google Script'i çağıran sihirli dokunuş
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwaPlM9B2cDqzI9_degApP7ubdMyKJs2AzOj1hEOJjXWEmL4_3DVS5BHlYBkwobUd7W/exec";
+    // SORGULAMA BAŞLAT
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwdNW4rMBKM85A6RSNJ-o3P1AclwYv2hWImB18UvkIDggwHbwHyuT0oCR7-SfsxFutv/exec";
     const scriptTag = document.createElement('script');
-    scriptTag.src = SCRIPT_URL + "?callback=veriyiYazdir";
+    scriptTag.src = SCRIPT_URL + "?callback=veriyiYazdir&t=" + new Date().getTime();
     
-    // Eğer Google 5 saniye içinde cevap vermezse hata göster
-    setTimeout(() => {
-        if(document.getElementById('loader').style.display !== 'none') {
-            document.getElementById('loader').innerText = "Bağlantı Zaman Aşımına Uğradı!";
-        }
-    }, 8000);
+    scriptTag.onerror = function() {
+        document.getElementById('loader').innerText = "⚠️ Bağlantı Hatası!";
+        document.getElementById('debug-info').innerText = "Google Script'e ulaşılamadı. Lütfen dağıtım izinlerini kontrol edin.";
+    };
 
     document.body.appendChild(scriptTag);
 </script>
