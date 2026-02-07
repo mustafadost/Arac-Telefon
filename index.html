@@ -1,85 +1,106 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sürücü Bilgi Sistemi</title>
+    <base target="_top">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 400px; }
-        .plaka { font-size: 2.2rem; font-weight: bold; color: #1c1e21; margin-bottom: 10px; border: 3px solid #1c1e21; display: inline-block; padding: 5px 20px; border-radius: 10px; }
-        .status { font-size: 1.2rem; margin: 20px 0; font-weight: 600; }
-        .online { color: #2ecc71; }
-        .offline { color: #e74c3c; }
-        .btn-call { display: block; background: #1877f2; color: white; text-decoration: none; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 1.1rem; transition: 0.3s; }
-        .btn-call:hover { background: #166fe5; }
-        .msg { color: #65676b; font-size: 0.9rem; margin-top: 15px; }
-        #loader { font-weight: bold; color: #1877f2; }
-        .hidden { display: none; }
+        body { background-color: #f8f9fa; padding: 20px; }
+        .container { max-width: 600px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .btn-admin { margin-top: 20px; font-size: 0.8rem; color: #6c757d; text-decoration: none; display: block; text-align: center; }
+        .card { margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="loader">🔄 Sürücü bilgileri alınıyor...</div>
-    
-    <div id="content" class="hidden">
-        <div class="plaka" id="plaka-no">-- --- --</div>
-        <div id="status-area" class="status"></div>
-        <a id="call-link" href="#" class="btn-call hidden">SÜRÜCÜYÜ ARA</a>
-        <div id="info-msg" class="msg"></div>
+    <div id="anaSayfa">
+        <h2 class="text-center">🚗 Araç Paneli</h2>
+        <hr>
+        <div class="mb-3">
+            <label class="form-label">Plaka Sorgula:</label>
+            <input type="text" id="sorguPlaka" class="form-control" placeholder="Örn: 34ABC123">
+            <button class="btn btn-primary w-100 mt-2" onclick="sorgula()">Sorgula</button>
+        </div>
+        <div id="sorguSonuc"></div>
+        <a href="#" class="btn-admin" onclick="adminGirisPaneli()">Yönetici Girişi</a>
+    </div>
+
+    <div id="adminPanel" style="display:none;">
+        <h3>🛠 Yönetici Paneli</h3>
+        <button class="btn btn-success w-100 mb-3" onclick="yeniKayitFormu()">+ Yeni Araç Kaydı Ekle</button>
+        <div id="adminListe"></div>
+        <button class="btn btn-secondary w-100 mt-3" onclick="anaSayfayaDon()">Çıkış Yap</button>
+    </div>
+
+    <div id="kayitFormu" style="display:none;">
+        <h3 id="formBaslik">Yeni Kayıt</h3>
+        <form id="aracForm">
+            <input type="hidden" id="aracId">
+            <div class="mb-2">
+                <label>Plaka:</label>
+                <input type="text" id="plaka" class="form-control" required>
+            </div>
+            <div class="mb-2">
+                <label>Telefon:</label>
+                <input type="text" id="tel" class="form-control" required>
+            </div>
+            <div class="mb-2">
+                <label>Şifre:</label>
+                <input type="text" id="sifre" class="form-control" required>
+            </div>
+            <div class="mb-2">
+                <label>E-posta:</label>
+                <input type="email" id="email" class="form-control" required>
+            </div>
+            <div class="mb-2">
+                <label>Durum:</label>
+                <select id="durum" class="form-control">
+                    <option value="ACIK">AÇIK</option>
+                    <option value="KAPALI">KAPALI</option>
+                </select>
+            </div>
+            <button type="button" class="btn btn-primary w-100" onclick="kaydet()">Kaydet</button>
+            <button type="button" class="btn btn-link w-100" onclick="adminPanelineDon()">İptal</button>
+        </form>
     </div>
 </div>
 
 <script>
-    // BURAYI KENDİ APPS SCRIPT LİNKİNLE DEĞİŞTİR
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwuXlEVjpVfc2RKKmUnv7RHEgON4riWw-wf_IddOf5xb4E-dOZGBtIlaEEMmtOXgJcJ/exec";
+    // BURAYA KENDİ SCRIPT URL'Nİ YAPIŞTIR
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwP5w4Kyrr6xsRM3WUecD76lkzsXELeCZ1hAvaDJ8V7ZS_jwIEVfQsEWfs6JHLxvXgv/exec";
 
-    function getParam(name) {
-        return new URLSearchParams(window.location.search).get(name);
-    }
-
-    const carId = getParam('id'); // Artık ID üzerinden arıyoruz
-
-    if (!carId) {
-        document.getElementById('loader').innerText = "❌ Geçersiz Link (ID Bulunamadı)";
-    } else {
-        const script = document.createElement('script');
-        script.src = `${SCRIPT_URL}?callback=handleResponse`;
-        document.body.appendChild(script);
-    }
-
-    function handleResponse(data) {
-        document.getElementById('loader').classList.add('hidden');
-        document.getElementById('content').classList.remove('hidden');
-
-        // Gelen veriler içinde ID'ye göre arama yapıyoruz
-        const car = data.find(item => item.id == carId);
-
-        if (car) {
-            document.getElementById('plaka-no').innerText = car.plaka;
-            
-            if (car.durum === "ACIK") {
-                document.getElementById('status-area').innerHTML = '<span class="online">● Sürücü Müsait</span>';
-                document.getElementById('call-link').classList.remove('hidden');
-                document.getElementById('call-link').href = `tel:${car.tel}`;
-                document.getElementById('info-msg').innerText = "Aracın kaldırılması için arayabilirsiniz.";
-            } else {
-                document.getElementById('status-area').innerHTML = '<span class="offline">○ Sürücü Şu An Meşgul</span>';
-                document.getElementById('info-msg').innerText = "Lütfen daha sonra tekrar deneyiniz.";
-            }
+    function adminGirisPaneli() {
+        let pass = prompt("Yönetici Şifresini Giriniz:");
+        if (pass === "1234") { // Şifreyi buradan değiştirebilirsin
+            document.getElementById('anaSayfa').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+            listeYukle();
         } else {
-            document.getElementById('loader').classList.remove('hidden');
-            document.getElementById('loader').innerText = "❌ Araç kaydı bulunamadı.";
+            alert("Hatalı Şifre!");
         }
     }
+
+    function yeniKayitFormu() {
+        document.getElementById('formBaslik').innerText = "Yeni Araç Kaydı";
+        document.getElementById('aracId').value = "";
+        document.getElementById('aracForm').reset();
+        document.getElementById('adminPanel').style.display = 'none';
+        document.getElementById('kayitFormu').style.display = 'block';
+    }
+
+    function anaSayfayaDon() {
+        document.getElementById('adminPanel').style.display = 'none';
+        document.getElementById('anaSayfa').style.display = 'block';
+    }
+
+    function adminPanelineDon() {
+        document.getElementById('kayitFormu').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+    }
+
+    // Listeleme, Kaydetme ve Sorgulama fonksiyonları buraya devam edecek...
+    // (Önceki kodlarındaki listeYukle, kaydet ve sorgula fonksiyonlarını buraya ekleyebilirsin)
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
