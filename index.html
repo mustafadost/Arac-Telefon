@@ -6,12 +6,12 @@
     <title>Araç Yönetim Sistemi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f0f2f5; padding: 20px; }
+        body { background-color: #f0f2f5; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .container { max-width: 500px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin: auto; }
         .hidden { display: none; }
-        .is-invalid { border-color: #dc3545 !important; }
-        .error-text { color: #dc3545; font-size: 0.8rem; display: none; }
-        .arac-kart { border-left: 5px solid #0d6efd; margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px; position: relative; }
+        .is-invalid { border-color: #dc3545 !important; background-image: none !important; }
+        .error-text { color: #dc3545; font-size: 0.85rem; font-weight: bold; margin-top: 5px; display: none; }
+        .arac-kart { border-left: 5px solid #0d6efd; margin-bottom: 10px; padding: 15px; background: #f8f9fa; border-radius: 8px; position: relative; }
     </style>
 </head>
 <body>
@@ -24,12 +24,12 @@
         <div id="sorguSonuc"></div>
         <hr>
         <button class="btn btn-link btn-sm w-100" onclick="sifreHatirlat()">📧 Şifremi Mail Gönder</button>
-        <span style="cursor:pointer; display:block; text-align:center; color:#ccc; margin-top:20px;" onclick="adminGiris()">Yönetici Paneli</span>
+        <span style="cursor:pointer; display:block; text-align:center; color:#ccc; margin-top:20px; font-size: 0.8rem;" onclick="adminGiris()">Yönetici Girişi</span>
     </div>
 
     <div id="adminPanel" class="hidden">
-        <div class="d-flex justify-content-between mb-3">
-            <h3>Yönetim</h3>
+        <div class="d-flex justify-content-between mb-3 align-items-center">
+            <h3>🛠 Yönetim</h3>
             <button class="btn btn-sm btn-outline-danger" onclick="location.reload()">Çıkış</button>
         </div>
         <button class="btn btn-success w-100 mb-3" onclick="yeniKayitFormu()">+ Yeni Araç Ekle</button>
@@ -38,31 +38,35 @@
 
     <div id="kayitEkrani" class="hidden">
         <h3 id="formBaslik">Araç Bilgileri</h3>
+        <p class="text-muted small">* Bilgileri girerken sistem otomatik kontrol sağlar.</p>
         <form id="aracForm">
             <input type="hidden" id="aracId">
             <div class="mb-3">
-                <label>Plaka *</label>
-                <input type="text" id="plaka" class="form-control" onblur="anlikKontrol('plaka')" oninput="this.value = this.value.toUpperCase().replace(/\s/g, '')" required>
-                <div id="plakaHata" class="error-text">Bu plaka zaten kayıtlı!</div>
+                <label class="form-label">Plaka *</label>
+                <input type="text" id="plaka" class="form-control" onblur="anlikKontrol('plaka')" oninput="temizlePlaka(this)" placeholder="34ABC123" required>
+                <div id="plakaHata" class="error-text">⚠️ BU PLAKA ZATEN KAYITLI!</div>
             </div>
             <div class="mb-3">
-                <label>Telefon *</label>
-                <input type="text" id="tel" class="form-control" required>
+                <label class="form-label">Telefon *</label>
+                <input type="text" id="tel" class="form-control" placeholder="05XXXXXXXXX" required>
             </div>
             <div class="mb-3">
-                <label>Giriş Şifresi *</label>
+                <label class="form-label">Giriş Şifresi *</label>
                 <input type="text" id="sifre" class="form-control" required>
             </div>
             <div class="mb-3">
-                <label>E-posta Adresi *</label>
-                <input type="email" id="email" class="form-control" onblur="anlikKontrol('email')" required>
-                <div id="emailHata" class="error-text">Bu e-posta zaten kullanımda!</div>
+                <label class="form-label">E-posta Adresi *</label>
+                <input type="email" id="email" class="form-control" onblur="anlikKontrol('email')" placeholder="ornek@mail.com" required>
+                <div id="emailHata" class="error-text">⚠️ BU E-POSTA ZATEN KULLANIMDA!</div>
             </div>
             <div class="mb-3">
-                <label>Durum</label>
-                <select id="durum" class="form-select"><option value="ACIK">AÇIK</option><option value="KAPALI">KAPALI</option></select>
+                <label class="form-label">Durum</label>
+                <select id="durum" class="form-select">
+                    <option value="ACIK">AÇIK</option>
+                    <option value="KAPALI">KAPALI</option>
+                </select>
             </div>
-            <button type="button" id="kaydetButon" class="btn btn-primary w-100 mb-2" onclick="kaydet()">Kaydet</button>
+            <button type="button" id="kaydetButon" class="btn btn-primary w-100 mb-2" onclick="kaydet()">Veriyi Kaydet</button>
             <button type="button" class="btn btn-light w-100" onclick="showPanel('adminPanel')">İptal</button>
         </form>
     </div>
@@ -70,8 +74,20 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx1cqsveYpd0_8F33Y63-_73NBr5YfnbQYs9YuLGWhXXW5ohWHVk_xe2KGoFYBysUjk/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby9w13z3ZtZX-V4Rf464XRcqmWPOmaJ0bii-WG-rtT9htVXOPb86h_VSim6tNDY3y07/exec"; 
     let tumAraclar = [];
+
+    // Sayfa açılır açılmaz verileri arka planda çek (Anlık kontrol için şart!)
+    $(document).ready(function() {
+        verileriOnYukle();
+    });
+
+    function verileriOnYukle() {
+        $.ajax({
+            url: SCRIPT_URL, dataType: "jsonp",
+            success: function(data) { tumAraclar = data; }
+        });
+    }
 
     function showPanel(id) {
         ['anaSayfa', 'adminPanel', 'kayitEkrani'].forEach(p => document.getElementById(p).classList.add('hidden'));
@@ -79,47 +95,79 @@
     }
 
     function adminGiris() {
-        if (prompt("Şifre:") === "1234") { showPanel('adminPanel'); listeYukle(); }
+        if (prompt("Yönetici Şifresi:") === "1234") { 
+            showPanel('adminPanel'); 
+            listeYukle(); 
+        }
     }
 
-    function listeYukle() {
-        $.ajax({
-            url: SCRIPT_URL, dataType: "jsonp",
-            success: function(data) {
-                tumAraclar = data;
-                let html = "";
-                data.forEach(arac => {
-                    html += `<div class="arac-kart"><b>${arac.plaka}</b> - ${arac.tel}<br><button class="btn btn-sm btn-link p-0" onclick='duzenle(${JSON.stringify(arac)})'>Düzenle</button></div>`;
-                });
-                document.getElementById('adminListe').innerHTML = html || "Kayıt yok.";
-            }
-        });
+    function temizlePlaka(input) {
+        input.value = input.value.toUpperCase().replace(/\s/g, '');
     }
 
     function anlikKontrol(alan) {
         const deger = document.getElementById(alan).value.trim().toUpperCase();
         const mevcutId = document.getElementById('aracId').value;
         const hataDiv = document.getElementById(alan + 'Hata');
+        const inputSaha = document.getElementById(alan);
         
+        // Eğer liste henüz yüklenmediyse kontrole zorla
+        if (tumAraclar.length === 0) {
+            verileriOnYukle();
+        }
+
         const varMi = tumAraclar.some(a => {
+            // Düzenleme modundaysak, aracın kendi eski bilgisini "hata" olarak görme
             if (mevcutId && a.id.toString() === mevcutId.toString()) return false;
-            return (alan === 'plaka') ? a.plaka.toUpperCase() === deger : a.email.toLowerCase() === deger.toLowerCase();
+            
+            if (alan === 'plaka') {
+                return a.plaka.replace(/\s/g, '').toUpperCase() === deger;
+            } else {
+                return a.email.toLowerCase() === deger.toLowerCase();
+            }
         });
 
         if (varMi && deger !== "") {
-            document.getElementById(alan).classList.add('is-invalid');
+            inputSaha.classList.add('is-invalid');
             hataDiv.style.display = 'block';
             document.getElementById('kaydetButon').disabled = true;
         } else {
-            document.getElementById(alan).classList.remove('is-invalid');
+            inputSaha.classList.remove('is-invalid');
             hataDiv.style.display = 'none';
-            document.getElementById('kaydetButon').disabled = false;
+            // Diğer alanın da hatası yoksa butonu aç
+            const digerHata = alan === 'plaka' ? 'emailHata' : 'plakaHata';
+            if (document.getElementById(digerHata).style.display !== 'block') {
+                document.getElementById('kaydetButon').disabled = false;
+            }
         }
+    }
+
+    function listeYukle() {
+        $.ajax({
+            url: SCRIPT_URL, dataType: "jsonp",
+            success: function(data) {
+                tumAraclar = data; // Listeyi güncelle
+                let html = "";
+                data.forEach(arac => {
+                    html += `<div class="arac-kart">
+                        <b>${arac.plaka}</b> <span class="badge ${arac.durum=='ACIK'?'bg-success':'bg-danger'} float-end">${arac.durum}</span><br>
+                        <small>${arac.tel}</small><br>
+                        <button class="btn btn-sm btn-link p-0" onclick='duzenle(${JSON.stringify(arac)})'>Düzenle / Gör</button>
+                    </div>`;
+                });
+                document.getElementById('adminListe').innerHTML = html || "Kayıt bulunamadı.";
+            }
+        });
     }
 
     function yeniKayitFormu() {
         document.getElementById('aracForm').reset();
         document.getElementById('aracId').value = "";
+        document.getElementById('plaka').classList.remove('is-invalid');
+        document.getElementById('email').classList.remove('is-invalid');
+        document.getElementById('plakaHata').style.display = 'none';
+        document.getElementById('emailHata').style.display = 'none';
+        document.getElementById('kaydetButon').disabled = false;
         showPanel('kayitEkrani');
     }
 
@@ -142,26 +190,47 @@
             email: document.getElementById('email').value,
             durum: document.getElementById('durum').value
         };
+        
+        $("#kaydetButon").html("İşleniyor...").prop("disabled", true);
+        
         $.ajax({
             url: SCRIPT_URL, method: "GET", data: { action: "aracKaydet", ...formData }, dataType: "jsonp",
-            success: function(res) { alert(res); if(!res.includes("Hata")) { showPanel('adminPanel'); listeYukle(); } }
+            success: function(res) { 
+                alert(res); 
+                $("#kaydetButon").html("Veriyi Kaydet").prop("disabled", false);
+                if(!res.includes("Hata")) { showPanel('adminPanel'); listeYukle(); } 
+            }
         });
     }
 
     function sorgula() {
-        const p = document.getElementById('sorguPlaka').value.toUpperCase().trim();
+        const p = document.getElementById('sorguPlaka').value.toUpperCase().replace(/\s/g, '');
+        if(!p) return alert("Plaka giriniz.");
         $.ajax({
             url: SCRIPT_URL, dataType: "jsonp",
             success: function(data) {
-                const a = data.find(x => x.plaka === p);
-                document.getElementById('sorguSonuc').innerHTML = a ? `<div class="alert alert-info">Durum: ${a.durum}<br>Tel: ${a.tel}</div>` : "Bulunamadı.";
+                const a = data.find(x => x.plaka.replace(/\s/g, '').toUpperCase() === p);
+                if(a) {
+                    document.getElementById('sorguSonuc').innerHTML = `
+                    <div class="alert alert-info">
+                        <strong>DURUM: ${a.durum}</strong><br>
+                        Plaka: ${a.plaka}<br>Tel: ${a.tel}
+                    </div>`;
+                } else { alert("Araç bulunamadı."); }
             }
         });
     }
 
     function sifreHatirlat() {
-        const m = prompt("E-posta:");
-        if(m) $.ajax({ url: SCRIPT_URL, data: { action: "sifremiGonder", mail: m }, dataType: "jsonp", success: function(res) { alert(res); } });
+        const m = prompt("Sistemde kayıtlı e-posta adresinizi giriniz:");
+        if(m) {
+            $.ajax({ 
+                url: SCRIPT_URL, 
+                data: { action: "sifremiGonder", mail: m }, 
+                dataType: "jsonp", 
+                success: function(res) { alert(res); } 
+            });
+        }
     }
 </script>
 </body>
