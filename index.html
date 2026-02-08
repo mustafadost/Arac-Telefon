@@ -6,82 +6,200 @@
     <title>Araç Yönetim Sistemi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .card { border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .btn-primary { border-radius: 10px; padding: 10px 20px; transition: all 0.3s; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(0,0,0,0.2); }
-        #loader { display: none; }
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
+        .container { max-width: 500px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin: auto; }
+        .btn-admin { margin-top: 30px; font-size: 0.85rem; color: #adb5bd; text-decoration: none; display: block; text-align: center; cursor: pointer; }
+        .btn-admin:hover { color: #6c757d; }
+        .hidden { display: none; }
+        .card-list { max-height: 400px; overflow-y: auto; margin-top: 15px; border: 1px solid #eee; padding: 10px; border-radius: 8px; }
+        .arac-kart { border-left: 5px solid #0d6efd; margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px; position: relative; }
+        .durum-badge { position: absolute; top: 10px; right: 10px; }
     </style>
 </head>
 <body>
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card p-4 mb-4">
-                <h2 class="text-center mb-4">Araç Giriş Paneli</h2>
-                
-                <div class="mb-3">
-                    <label class="form-label">E-posta Adresiniz</label>
-                    <input type="email" id="userEmail" class="form-control" placeholder="ornek@mail.com">
-                </div>
-                
-                <div class="d-grid gap-2">
-                    <button onclick="sifreHatirlat()" class="btn btn-warning">Şifremi Mail Gönder</button>
-                </div>
-
-                <div id="loader" class="text-center mt-3">
-                    <div class="spinner-border text-primary" role="status"></div>
-                    <p>İşlem yapılıyor, lütfen bekleyin...</p>
-                </div>
-                
-                <div id="resultArea" class="mt-3 text-center fw-bold"></div>
-            </div>
+<div class="container">
+    <div id="anaSayfa">
+        <h2 class="text-center mb-4">🚗 Araç Paneli</h2>
+        <div class="mb-3">
+            <label class="form-label">Plaka Sorgula:</label>
+            <input type="text" id="sorguPlaka" class="form-control form-control-lg" placeholder="34ABC123">
         </div>
+        <button class="btn btn-primary w-100 btn-lg mb-3" onclick="sorgula()">Sorgula / Bilgi Al</button>
+        
+        <div id="sorguSonuc"></div>
+        
+        <hr>
+        <div class="text-center">
+            <small class="text-muted">Giriş bilgilerini mi unuttunuz?</small><br>
+            <button class="btn btn-outline-secondary btn-sm mt-2" onclick="sifreHatirlat()">📧 Şifremi Mail Gönder</button>
+        </div>
+        
+        <span class="btn-admin" onclick="adminGiris()">Yönetici Girişi</span>
+    </div>
+
+    <div id="adminPanel" class="hidden">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>🛠 Yönetim</h3>
+            <button class="btn btn-sm btn-outline-danger" onclick="anaSayfayaDon()">Kapat</button>
+        </div>
+        <button class="btn btn-success w-100 mb-3" onclick="yeniKayitFormu()">+ Yeni Araç Kaydı Ekle</button>
+        <div id="adminListe" class="card-list">Yükleniyor...</div>
+    </div>
+
+    <div id="kayitEkrani" class="hidden">
+        <h3 id="formBaslik">Araç Bilgileri</h3>
+        <p class="text-danger small">* Tüm alanların doldurulması zorunludur.</p>
+        <form id="aracForm">
+            <input type="hidden" id="aracId">
+            <div class="mb-3">
+                <label>Plaka *</label>
+                <input type="text" id="plaka" class="form-control" placeholder="34ABC123" required>
+            </div>
+            <div class="mb-3">
+                <label>Telefon *</label>
+                <input type="text" id="tel" class="form-control" placeholder="05XXXXXXXXX" required>
+            </div>
+            <div class="mb-3">
+                <label>Şifre *</label>
+                <input type="text" id="sifre" class="form-control" placeholder="Giriş şifresi" required>
+            </div>
+            <div class="mb-3">
+                <label>E-posta Adresi *</label>
+                <input type="email" id="email" class="form-control" placeholder="ornek@mail.com" required>
+            </div>
+            <div class="mb-3">
+                <label>Durum</label>
+                <select id="durum" class="form-select">
+                    <option value="ACIK">AÇIK</option>
+                    <option value="KAPALI">KAPALI</option>
+                </select>
+            </div>
+            <button type="button" class="btn btn-primary w-100 mb-2" onclick="kaydet()">Veriyi Sisteme İşle</button>
+            <button type="button" class="btn btn-light w-100" onclick="adminPanelineDon()">Geri Dön</button>
+        </form>
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    // --- BURAYI GÜNCELLE ---
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyylZGC21rBVAl5LjAWBjcIFVu9pX3aYQ4TB0i1YtgB2Cemwr3RnQMtnm61sdAS0hOd/exec";
-    // -----------------------
+    // --- BURAYA KENDİ URL'Nİ YAPIŞTIR ---
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbybmnOv7sV9uWpsHRnA9tKXHQEiyagNTN2tVISyBw8YSaT4fJyklY3HunHC-Qk_N33q/exec";
 
-    function sifreHatirlat() {
-        const email = document.getElementById('userEmail').value.trim();
-        const resultArea = document.getElementById('resultArea');
-        const loader = document.getElementById('loader');
+    function showPanel(id) {
+        ['anaSayfa', 'adminPanel', 'kayitEkrani'].forEach(p => document.getElementById(p).classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+    }
 
-        if (!email) {
-            alert("Lütfen e-posta adresinizi girin.");
+    function anaSayfayaDon() { showPanel('anaSayfa'); }
+    function adminPanelineDon() { showPanel('adminPanel'); }
+
+    function adminGiris() {
+        let pass = prompt("Yönetici Şifresi:");
+        if (pass === "1234") {
+            showPanel('adminPanel');
+            listeYukle();
+        } else if(pass !== null) { alert("Hatalı Şifre!"); }
+    }
+
+    function yeniKayitFormu() {
+        document.getElementById('formBaslik').innerText = "Yeni Araç Kaydı";
+        document.getElementById('aracId').value = "";
+        document.getElementById('aracForm').reset();
+        showPanel('kayitEkrani');
+    }
+
+    function kaydet() {
+        const data = {
+            id: document.getElementById('aracId').value,
+            plaka: document.getElementById('plaka').value.trim(),
+            tel: document.getElementById('tel').value.trim(),
+            sifre: document.getElementById('sifre').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            durum: document.getElementById('durum').value
+        };
+
+        if(!data.plaka || !data.tel || !data.sifre || !data.email) {
+            alert("Lütfen tüm alanları eksiksiz doldurun!");
             return;
         }
 
-        loader.style.display = "block";
-        resultArea.innerText = "";
-        resultArea.className = "mt-3 text-center fw-bold text-primary";
-        resultArea.innerText = "Sistem kontrol ediliyor...";
-
-        // JSONP kullanarak Apps Script'e güvenli istek atma
-        const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-        window[callbackName] = function(response) {
-            delete window[callbackName];
-            document.body.removeChild(script);
-            loader.style.display = "none";
-            
-            if (response.includes("başarıyla") || response.includes("gönderildi")) {
-                resultArea.className = "mt-3 text-center fw-bold text-success";
-            } else {
-                resultArea.className = "mt-3 text-center fw-bold text-danger";
+        $.ajax({
+            url: SCRIPT_URL,
+            method: "GET",
+            data: { action: "aracKaydet", ...data },
+            dataType: "jsonp",
+            success: function(res) {
+                alert(res);
+                if(!res.includes("Hata")) {
+                    adminPanelineDon();
+                    listeYukle();
+                }
             }
-            resultArea.innerText = response;
-        };
+        });
+    }
 
-        const script = document.createElement('script');
-        script.src = `${SCRIPT_URL}?action=sifremiGonder&mailAdresi=${encodeURIComponent(email)}&callback=${callbackName}`;
-        document.body.appendChild(script);
+    function listeYukle() {
+        $.ajax({
+            url: SCRIPT_URL,
+            dataType: "jsonp",
+            success: function(data) {
+                let html = "";
+                data.forEach(arac => {
+                    html += `<div class="arac-kart">
+                        <b>${arac.plaka}</b><br>
+                        <small>${arac.tel} | ${arac.email}</small>
+                        <span class="badge ${arac.durum === 'ACIK' ? 'bg-success' : 'bg-danger'} durum-badge">${arac.durum}</span>
+                        <br><button class="btn btn-sm btn-link p-0" onclick='duzenle(${JSON.stringify(arac)})'>Düzenle</button>
+                    </div>`;
+                });
+                document.getElementById('adminListe').innerHTML = html || "Henüz kayıtlı araç yok.";
+            }
+        });
+    }
+
+    function duzenle(arac) {
+        document.getElementById('formBaslik').innerText = "Kaydı Düzenle";
+        document.getElementById('aracId').value = arac.id;
+        document.getElementById('plaka').value = arac.plaka;
+        document.getElementById('tel').value = arac.tel;
+        document.getElementById('sifre').value = arac.sifre;
+        document.getElementById('email').value = arac.email;
+        document.getElementById('durum').value = arac.durum;
+        showPanel('kayitEkrani');
+    }
+
+    function sorgula() {
+        const p = document.getElementById('sorguPlaka').value.toUpperCase().trim();
+        if(!p) return alert("Lütfen plaka girin.");
+        
+        $.ajax({
+            url: SCRIPT_URL,
+            dataType: "jsonp",
+            success: function(data) {
+                const arac = data.find(a => a.plaka === p);
+                if(arac) {
+                    document.getElementById('sorguSonuc').innerHTML = `
+                        <div class="alert ${arac.durum === 'ACIK' ? 'alert-success' : 'alert-danger'}">
+                            <h4>Durum: ${arac.durum}</h4>
+                            <p>Plaka: ${arac.plaka}<br>İletişim: ${arac.tel}</p>
+                        </div>`;
+                } else { alert("Araç bulunamadı."); }
+            }
+        });
+    }
+
+    function sifreHatirlat() {
+        const mail = prompt("Kayıtlı e-posta adresinizi yazın:");
+        if (mail) {
+            $.ajax({
+                url: SCRIPT_URL,
+                data: { action: "sifremiGonder", mail: mail },
+                dataType: "jsonp",
+                success: function(res) { alert(res); }
+            });
+        }
     }
 </script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
