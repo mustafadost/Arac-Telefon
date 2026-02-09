@@ -18,7 +18,7 @@ body{font-family:Arial;background:#111;color:#fff;text-align:center;padding:40px
 <script>
 const id=new URLSearchParams(window.location.search).get("id");
 
-fetch("https://script.google.com/macros/s/AKfycbyIKlFL_V__cCc18PvCdPmm7wVVQQEjPzmBDmwTSu2Ah41FfBmwCpC-1r66hDLex3ah/exec"+id)
+fetch("https://script.google.com/macros/s/AKfycbx3Qgr9PIXpwUZvbMzJvSg4P7MBCHn6sQDVrix7PFfge_v64xSeU1mCflxfm_k-iwc/exec"+id)
 .then(r=>r.json())
 .then(d=>{
  if(!d){icerik.innerHTML="Araç bulunamadı";return;}
@@ -32,3 +32,4 @@ fetch("https://script.google.com/macros/s/AKfycbyIKlFL_V__cCc18PvCdPmm7wVVQQEjPz
 
 </body>
 </html>
+
