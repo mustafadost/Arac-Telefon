@@ -2,31 +2,33 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Yönlendiriliyor...</title>
+<title>Araç Bilgisi</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{font-family:Arial;background:#111;color:#fff;text-align:center;padding:40px}
+.card{background:#222;padding:25px;border-radius:15px;max-width:400px;margin:auto}
+.tel{font-size:22px;margin-top:15px}
+.kapali{color:#f44336}
+</style>
 </head>
 <body>
 
+<div class="card" id="icerik">Yükleniyor...</div>
+
 <script>
-/*
-  ÖRNEK:
-  https://script.google.com/macros/s/AKfycbXXXXXXX/exec?id=ABC123
-*/
+const id=new URLSearchParams(window.location.search).get("id");
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxZyGVrOsbgF-5IW85gaQt1DGskAHhxGrHmGccSfTPtt9xtF9wSSNufcuuCSalbduq3/exec";
-
-const params = new URLSearchParams(window.location.search);
-const id = params.get("id");
-
-if (id) {
-  window.location.href = WEB_APP_URL + "?id=" + encodeURIComponent(id);
-} else {
-  window.location.href = WEB_APP_URL;
-}
+fetch("https://script.google.com/macros/s/AKfycbyIKlFL_V__cCc18PvCdPmm7wVVQQEjPzmBDmwTSu2Ah41FfBmwCpC-1r66hDLex3ah/exec"+id)
+.then(r=>r.json())
+.then(d=>{
+ if(!d){icerik.innerHTML="Araç bulunamadı";return;}
+ if(d.tel_gorunur==="ACIK"){
+  icerik.innerHTML=`<h2>${d.plaka}</h2><div class="tel">${d.tel}</div>`;
+ }else{
+  icerik.innerHTML=`<h2>${d.plaka}</h2><div class="kapali">Telefon gizli</div>`;
+ }
+});
 </script>
 
 </body>
 </html>
-
-
-
