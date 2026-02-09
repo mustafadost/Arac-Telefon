@@ -2,139 +2,28 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Araç Yönetim Paneli</title>
+<title>Yönlendiriliyor...</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-body{font-family:Arial;background:#eceff1;display:flex;justify-content:center;padding:15px}
-.card{background:#fff;width:100%;max-width:420px;border-radius:18px;padding:25px;box-shadow:0 10px 25px rgba(0,0,0,.12)}
-.hidden{display:none}
-input,select{width:100%;padding:12px;margin:8px 0;border-radius:10px;border:1px solid #cfd8dc;font-size:15px}
-button{width:100%;padding:14px;border:none;border-radius:10px;color:#fff;font-weight:bold;margin-top:10px;cursor:pointer}
-.blue{background:#1e88e5}
-.green{background:#43a047}
-.gray{background:#78909c}
-.plaka{background:#263238;color:#fff;font-size:28px;font-weight:bold;padding:15px;border-radius:12px;text-align:center;margin-bottom:15px}
-.list{border:1px solid #e0e0e0;border-radius:12px;padding:12px;margin-bottom:10px;font-size:13px}
-.edit{background:#fb8c00;padding:5px 10px;font-size:11px;border-radius:8px;width:auto}
-</style>
 </head>
-
 <body>
-<div class="card">
-
-<div id="loader">🔄 Yükleniyor...</div>
-
-<!-- LOGIN -->
-<div id="login" class="hidden">
-<h3>Sürücü Girişi</h3>
-<input id="lp" placeholder="PLAKA">
-<input id="ls" type="password" placeholder="ŞİFRE">
-<button class="blue" onclick="login()">GİRİŞ</button>
-<p style="text-align:center;font-size:12px;cursor:pointer" onclick="adminLogin()">Yönetici</p>
-</div>
-
-<!-- DRIVER -->
-<div id="driver" class="hidden">
-<div class="plaka" id="d-plaka"></div>
-<select id="d-durum">
-<option value="ACIK">MÜSAİT</option>
-<option value="KAPALI">MEŞGUL</option>
-</select>
-<button class="green" onclick="saveDriver()">KAYDET</button>
-<button class="gray" onclick="location.reload()">ÇIKIŞ</button>
-</div>
-
-<!-- ADMIN -->
-<div id="admin" class="hidden">
-<h3 id="a-title">Yeni Araç</h3>
-<input type="hidden" id="a-id">
-<input id="a-plaka" placeholder="PLAKA">
-<input id="a-tel" placeholder="TELEFON">
-<input id="a-sifre" placeholder="ŞİFRE">
-<select id="a-durum">
-<option value="ACIK">MÜSAİT</option>
-<option value="KAPALI">MEŞGUL</option>
-</select>
-<button class="blue" onclick="saveAdmin()">KAYDET</button>
-<div id="list"></div>
-<button class="gray" onclick="location.reload()">GERİ</button>
-</div>
-
-</div>
 
 <script>
-let data=[], active=null;
+/*
+  ÖRNEK:
+  https://script.google.com/macros/s/AKfycbXXXXXXX/exec?id=ABC123
+*/
 
-window.onload=()=>load();
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxKbHn9qNojJOCPYkE4DxIIFh5JSTgXcKTtz_hko7-ZVGHH-mMjVwufUk7msE0hRGUn/exec";
 
-function load(){
-google.script.run.withSuccessHandler(r=>{
-data=r;
-loader(false);
-show("login");
-}).getAracListesi();
-}
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
 
-function loader(s){document.getElementById("loader").classList.toggle("hidden",!s)}
-function show(id){
-["login","driver","admin"].forEach(x=>document.getElementById(x).classList.add("hidden"));
-document.getElementById(id).classList.remove("hidden");
-}
-
-function login(){
-const p=lp.value.trim().toUpperCase();
-const s=ls.value;
-active=data.find(x=>x.plaka===p && x.sifre===s);
-if(!active) return alert("Hatalı giriş");
-d_plaka.innerText=active.plaka;
-d_durum.value=active.durum;
-show("driver");
-}
-
-function saveDriver(){
-active.durum=d_durum.value;
-google.script.run.withSuccessHandler(()=>alert("Kaydedildi")).aracKaydet(active);
-}
-
-function adminLogin(){
-google.script.run.withSuccessHandler(ok=>{
-if(!ok) return alert("Yetkisiz");
-listAdmin();
-show("admin");
-}).adminAuth();
-}
-
-function listAdmin(){
-list.innerHTML="";
-data.forEach(i=>{
-const d=document.createElement("div");
-d.className="list";
-d.innerHTML=`<b>${i.plaka}</b> [${i.durum}]
-<button class="edit">DÜZENLE</button>`;
-d.querySelector("button").onclick=()=>edit(i);
-list.appendChild(d);
-});
-}
-
-function edit(i){
-a_id.value=i.id;
-a_plaka.value=i.plaka;
-a_tel.value=i.tel;
-a_sifre.value=i.sifre;
-a_durum.value=i.durum;
-a_title.innerText="Düzenle";
-}
-
-function saveAdmin(){
-const o={
-id:a_id.value,
-plaka:a_plaka.value.toUpperCase(),
-tel:a_tel.value,
-sifre:a_sifre.value,
-durum:a_durum.value
-};
-google.script.run.withSuccessHandler(()=>location.reload()).aracKaydet(o);
+if (id) {
+  window.location.href = WEB_APP_URL + "?id=" + encodeURIComponent(id);
+} else {
+  window.location.href = WEB_APP_URL;
 }
 </script>
+
 </body>
 </html>
