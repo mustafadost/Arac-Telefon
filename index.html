@@ -9,9 +9,9 @@
         body { background-color: #f0f2f5; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .container { max-width: 500px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin: auto; }
         .hidden { display: none; }
-        .is-invalid { border-color: #dc3545 !important; background-image: none !important; }
+        .is-invalid { border-color: #dc3545 !important; background-color: #fff8f8 !important; }
         .error-text { color: #dc3545; font-size: 0.85rem; font-weight: bold; margin-top: 5px; display: none; }
-        .arac-kart { border-left: 5px solid #0d6efd; margin-bottom: 10px; padding: 15px; background: #f8f9fa; border-radius: 8px; position: relative; }
+        .arac-kart { border-left: 5px solid #0d6efd; margin-bottom: 10px; padding: 15px; background: #f8f9fa; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -33,17 +33,16 @@
             <button class="btn btn-sm btn-outline-danger" onclick="location.reload()">Çıkış</button>
         </div>
         <button class="btn btn-success w-100 mb-3" onclick="yeniKayitFormu()">+ Yeni Araç Ekle</button>
-        <div id="adminListe">Yükleniyor...</div>
+        <div id="adminListe">Veriler yükleniyor...</div>
     </div>
 
     <div id="kayitEkrani" class="hidden">
         <h3 id="formBaslik">Araç Bilgileri</h3>
-        <p class="text-muted small">* Bilgileri girerken sistem otomatik kontrol sağlar.</p>
         <form id="aracForm">
             <input type="hidden" id="aracId">
             <div class="mb-3">
                 <label class="form-label">Plaka *</label>
-                <input type="text" id="plaka" class="form-control" onblur="anlikKontrol('plaka')" oninput="temizlePlaka(this)" placeholder="34ABC123" required>
+                <input type="text" id="plaka" class="form-control" oninput="anlikKontrol('plaka')" placeholder="34ABC123" required>
                 <div id="plakaHata" class="error-text">⚠️ BU PLAKA ZATEN KAYITLI!</div>
             </div>
             <div class="mb-3">
@@ -56,7 +55,7 @@
             </div>
             <div class="mb-3">
                 <label class="form-label">E-posta Adresi *</label>
-                <input type="email" id="email" class="form-control" onblur="anlikKontrol('email')" placeholder="ornek@mail.com" required>
+                <input type="email" id="email" class="form-control" oninput="anlikKontrol('email')" placeholder="ornek@mail.com" required>
                 <div id="emailHata" class="error-text">⚠️ BU E-POSTA ZATEN KULLANIMDA!</div>
             </div>
             <div class="mb-3">
@@ -74,18 +73,22 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby9w13z3ZtZX-V4Rf464XRcqmWPOmaJ0bii-WG-rtT9htVXOPb86h_VSim6tNDY3y07/exec"; 
+    const SCRIPT_URL = "BURAYA_APPS_SCRIPT_URL_YAPISTIR"; // <--- UNUTMA!
     let tumAraclar = [];
 
-    // Sayfa açılır açılmaz verileri arka planda çek (Anlık kontrol için şart!)
+    // Uygulama başlar başlamaz ve her 30 saniyede bir verileri tazele
     $(document).ready(function() {
-        verileriOnYukle();
+        verileriCek();
+        setInterval(verileriCek, 30000); 
     });
 
-    function verileriOnYukle() {
+    function verileriCek() {
         $.ajax({
             url: SCRIPT_URL, dataType: "jsonp",
-            success: function(data) { tumAraclar = data; }
+            success: function(data) { 
+                tumAraclar = data; 
+                console.log("Veriler güncellendi, toplam kayıt:", tumAraclar.length);
+            }
         });
     }
 
@@ -101,42 +104,35 @@
         }
     }
 
-    function temizlePlaka(input) {
-        input.value = input.value.toUpperCase().replace(/\s/g, '');
-    }
-
     function anlikKontrol(alan) {
-        const deger = document.getElementById(alan).value.trim().toUpperCase();
+        const inputSaha = document.getElementById(alan);
+        // Otomatik Büyük Harf ve Boşluk Silme
+        inputSaha.value = inputSaha.value.toUpperCase().replace(/\s/g, '');
+        
+        const deger = inputSaha.value.trim();
         const mevcutId = document.getElementById('aracId').value;
         const hataDiv = document.getElementById(alan + 'Hata');
-        const inputSaha = document.getElementById(alan);
         
-        // Eğer liste henüz yüklenmediyse kontrole zorla
-        if (tumAraclar.length === 0) {
-            verileriOnYukle();
-        }
-
-        const varMi = tumAraclar.some(a => {
-            // Düzenleme modundaysak, aracın kendi eski bilgisini "hata" olarak görme
+        // Eşleşme Bul
+        const eslesme = tumAraclar.find(a => {
             if (mevcutId && a.id.toString() === mevcutId.toString()) return false;
-            
-            if (alan === 'plaka') {
-                return a.plaka.replace(/\s/g, '').toUpperCase() === deger;
-            } else {
-                return a.email.toLowerCase() === deger.toLowerCase();
-            }
+            if (alan === 'plaka') return a.plaka.replace(/\s/g, '').toUpperCase() === deger;
+            if (alan === 'email') return a.email.toLowerCase() === deger.toLowerCase();
+            return false;
         });
 
-        if (varMi && deger !== "") {
+        if (eslesme && deger !== "") {
             inputSaha.classList.add('is-invalid');
             hataDiv.style.display = 'block';
             document.getElementById('kaydetButon').disabled = true;
         } else {
             inputSaha.classList.remove('is-invalid');
             hataDiv.style.display = 'none';
-            // Diğer alanın da hatası yoksa butonu aç
-            const digerHata = alan === 'plaka' ? 'emailHata' : 'plakaHata';
-            if (document.getElementById(digerHata).style.display !== 'block') {
+            
+            // Diğer alanlarda hata yoksa butonu aktif et
+            const plakaHata = document.getElementById('plakaHata').style.display;
+            const emailHata = document.getElementById('emailHata').style.display;
+            if (plakaHata !== 'block' && emailHata !== 'block') {
                 document.getElementById('kaydetButon').disabled = false;
             }
         }
@@ -146,16 +142,16 @@
         $.ajax({
             url: SCRIPT_URL, dataType: "jsonp",
             success: function(data) {
-                tumAraclar = data; // Listeyi güncelle
+                tumAraclar = data;
                 let html = "";
                 data.forEach(arac => {
                     html += `<div class="arac-kart">
                         <b>${arac.plaka}</b> <span class="badge ${arac.durum=='ACIK'?'bg-success':'bg-danger'} float-end">${arac.durum}</span><br>
                         <small>${arac.tel}</small><br>
-                        <button class="btn btn-sm btn-link p-0" onclick='duzenle(${JSON.stringify(arac)})'>Düzenle / Gör</button>
+                        <button class="btn btn-sm btn-link p-0" onclick='duzenle(${JSON.stringify(arac)})'>Düzenle</button>
                     </div>`;
                 });
-                document.getElementById('adminListe').innerHTML = html || "Kayıt bulunamadı.";
+                document.getElementById('adminListe').innerHTML = html || "Kayıt yok.";
             }
         });
     }
@@ -163,10 +159,9 @@
     function yeniKayitFormu() {
         document.getElementById('aracForm').reset();
         document.getElementById('aracId').value = "";
-        document.getElementById('plaka').classList.remove('is-invalid');
-        document.getElementById('email').classList.remove('is-invalid');
-        document.getElementById('plakaHata').style.display = 'none';
-        document.getElementById('emailHata').style.display = 'none';
+        // Hataları temizle
+        document.querySelectorAll('.error-text').forEach(e => e.style.display = 'none');
+        document.querySelectorAll('.form-control').forEach(e => e.classList.remove('is-invalid'));
         document.getElementById('kaydetButon').disabled = false;
         showPanel('kayitEkrani');
     }
@@ -197,40 +192,24 @@
             url: SCRIPT_URL, method: "GET", data: { action: "aracKaydet", ...formData }, dataType: "jsonp",
             success: function(res) { 
                 alert(res); 
-                $("#kaydetButon").html("Veriyi Kaydet").prop("disabled", false);
+                verileriCek(); // Listeyi tazele
                 if(!res.includes("Hata")) { showPanel('adminPanel'); listeYukle(); } 
+                else { $("#kaydetButon").html("Veriyi Kaydet").prop("disabled", false); }
             }
         });
     }
 
     function sorgula() {
         const p = document.getElementById('sorguPlaka').value.toUpperCase().replace(/\s/g, '');
-        if(!p) return alert("Plaka giriniz.");
-        $.ajax({
-            url: SCRIPT_URL, dataType: "jsonp",
-            success: function(data) {
-                const a = data.find(x => x.plaka.replace(/\s/g, '').toUpperCase() === p);
-                if(a) {
-                    document.getElementById('sorguSonuc').innerHTML = `
-                    <div class="alert alert-info">
-                        <strong>DURUM: ${a.durum}</strong><br>
-                        Plaka: ${a.plaka}<br>Tel: ${a.tel}
-                    </div>`;
-                } else { alert("Araç bulunamadı."); }
-            }
-        });
+        const a = tumAraclar.find(x => x.plaka.replace(/\s/g, '').toUpperCase() === p);
+        if(a) {
+            document.getElementById('sorguSonuc').innerHTML = `<div class="alert alert-info"><strong>DURUM: ${a.durum}</strong><br>Tel: ${a.tel}</div>`;
+        } else { alert("Araç bulunamadı."); }
     }
 
     function sifreHatirlat() {
-        const m = prompt("Sistemde kayıtlı e-posta adresinizi giriniz:");
-        if(m) {
-            $.ajax({ 
-                url: SCRIPT_URL, 
-                data: { action: "sifremiGonder", mail: m }, 
-                dataType: "jsonp", 
-                success: function(res) { alert(res); } 
-            });
-        }
+        const m = prompt("E-posta adresiniz:");
+        if(m) $.ajax({ url: SCRIPT_URL, data: { action: "sifremiGonder", mail: m }, dataType: "jsonp", success: function(res) { alert(res); } });
     }
 </script>
 </body>
