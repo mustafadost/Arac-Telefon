@@ -29,7 +29,7 @@
 
     <div id="bilgiEkrani" class="profile-card hidden">
         <div class="header">
-            <div class="small opacity-75">ARAÇ SAHİBİ BİLGİSİ</div>
+            <div class="small opacity-75 text-uppercase">Araç Sahibi Bilgisi</div>
             <div class="plaka-box" id="plakaNo">---</div>
         </div>
         <div class="card-body">
@@ -52,7 +52,7 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        // BURAYA YENİ ALDIĞIN GOOGLE LİNKİNİ YAPIŞTIR
+        // SON ALDIĞIN GÜNCEL LİNK
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxGQlifjrKtsXI2G-Uz7yiHMe-XJSS5BFMFAUab5JjR9bfU94PS26luCzRT3RFUd5Oi/exec";
 
         $(document).ready(function() {
@@ -61,8 +61,8 @@
                 $.ajax({
                     url: SCRIPT_URL,
                     dataType: "jsonp",
-                    jsonpCallback: "callback", // Google tarafındaki çıktı ile tam eşleşme
-                    timeout: 15000,
+                    jsonpCallback: "callback", // Google'dan gelen paket ismini (callback) burada açıyoruz
+                    timeout: 10000,
                     success: function(data) {
                         $('#loader').hide();
                         const a = data.find(x => String(x.id) === String(id));
