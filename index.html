@@ -3,80 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Araç Bilgi</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Araç Telefon</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
-        body { background: #f0f2f5; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; font-family: sans-serif; }
-        .card { width: 90%; max-width: 380px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: none; overflow: hidden; }
-        .header { background: #1a202c; color: white; padding: 30px 20px; text-align: center; }
-        .plaka { background: white; color: #1a202c; display: inline-block; padding: 10px 25px; border-radius: 10px; font-size: 2rem; font-weight: 800; margin-top: 10px; }
-        .btn-call { background: #22c55e; color: white; text-decoration: none; display: block; padding: 15px; border-radius: 15px; font-weight: bold; font-size: 1.2rem; margin-top: 20px; text-align: center; }
-        #loader { text-align: center; padding: 50px; }
-        .hidden { display: none; }
+        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 300px; display: none; }
+        .plaka { font-size: 28px; font-weight: bold; border: 3px solid #1a202c; display: inline-block; padding: 10px 20px; border-radius: 10px; margin-bottom: 20px; color: #1a202c; }
+        .btn { background: #22c55e; color: white; text-decoration: none; padding: 18px; border-radius: 12px; display: block; font-weight: bold; font-size: 1.2rem; }
+        #loader { font-weight: bold; color: #555; }
     </style>
 </head>
 <body>
 
-    <div id="loader">
-        <div class="spinner-border text-primary"></div>
-        <p class="mt-3">Yükleniyor...</p>
-    </div>
+    <div id="loader">Bilgiler Getiriliyor...</div>
 
-    <div id="bilgiEkrani" class="card hidden">
-        <div class="header">
-            <div style="font-size: 0.8rem; opacity: 0.8;">ARAÇ SAHİBİ BİLGİSİ</div>
-            <div class="plaka" id="plakaNo">---</div>
+    <div id="bilgiKarti" class="card">
+        <div class="plaka" id="plakaNo">---</div>
+        <div id="aktif">
+            <p style="color:#666; margin-bottom:20px;">Sürücüye ulaşmak için:</p>
+            <a href="" id="telButon" class="btn">SÜRÜCÜYÜ ARA</a>
+            <h3 id="telYazi" style="margin-top:20px;"></h3>
         </div>
-        <div class="p-4 text-center">
-            <div id="aktif">
-                <p class="text-muted">Sürücüye ulaşmak için butona basınız:</p>
-                <a href="#" id="telLink" class="btn-call">📞 SÜRÜCÜYÜ ARA</a>
-                <h4 id="telNo" class="mt-3 fw-bold"></h4>
-            </div>
-            <div id="kapali" class="hidden text-danger fw-bold">
-                Sürücü şu an iletişime kapalıdır.
-            </div>
+        <div id="kapali" style="display:none; color:#ef4444; font-weight:bold; padding:20px;">
+            Sürücü şu an iletişime kapalıdır.
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        // ÖNEMLİ: BURAYA "DAĞITIMLARI YÖNET"TEN ALDIĞIN EN SON LİNKİ KOY!
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxGQlifjrKtsXI2G-Uz7yiHMe-XJSS5BFMFAUab5JjR9bfU94PS26luCzRT3RFUd5Oi/exec";
+        // GOOGLE'DAN KOPYALADIĞIN LİNKİ BURAYA YAPIŞTIR
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJps4mg6Roa-QuVH6L1RpIO4ELRsu4AeWIuai5WCa24E8IHlsRRVrXyWJfpY7vIrrk/exec";
 
         $(document).ready(function() {
             const urlParams = new URLSearchParams(window.location.search);
             const id = urlParams.get('id');
 
-            if (id) {
-                $.ajax({
-                    url: SCRIPT_URL,
-                    dataType: "jsonp",
-                    jsonpCallback: "callback",
-                    timeout: 10000,
-                    success: function(data) {
-                        $('#loader').hide();
-                        const a = data.find(x => String(x.id) === String(id));
-                        if (a) {
-                            $('#plakaNo').text(a.plaka);
-                            if (a.durum === "ACIK") {
-                                $('#telNo').text(a.tel);
-                                $('#telLink').attr('href', 'tel:' + a.tel);
-                                $('#aktif').show();
-                            } else {
-                                $('#aktif').hide();
-                                $('#kapali').show();
-                            }
-                            $('#bilgiEkrani').show();
-                        } else {
-                            $('#loader').text("Araç bulunamadı.");
-                        }
-                    },
-                    error: function() {
-                        $('#loader').html('<p class="text-danger">Bağlantı Hatası!<br><small>Lütfen internetinizi kontrol edin.</small></p>');
-                    }
-                });
+            if (!id) {
+                $("#loader").text("ID bulunamadı. Lütfen QR kodu okutun.");
+                return;
             }
+
+            $.ajax({
+                url: SCRIPT_URL,
+                dataType: "jsonp",
+                timeout: 10000,
+                success: function(data) {
+                    const arac = data.find(x => String(x.id) === String(id));
+                    $("#loader").hide();
+                    
+                    if (arac) {
+                        $("#plakaNo").text(arac.plaka);
+                        if (arac.durum === "ACIK") {
+                            $("#telButon").attr("href", "tel:" + arac.tel);
+                            $("#telYazi").text(arac.tel);
+                            $("#aktif").show();
+                        } else {
+                            $("#aktif").hide();
+                            $("#kapali").show();
+                        }
+                        $("#bilgiKarti").fadeIn();
+                    } else {
+                        $("#loader").text("Hata: Araç kaydı bulunamadı.");
+                    }
+                },
+                error: function() {
+                    $("#loader").text("Bağlantı hatası! Lütfen internetinizi kontrol edip sayfayı yenileyin.");
+                }
+            });
         });
     </script>
 </body>
