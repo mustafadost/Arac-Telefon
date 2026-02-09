@@ -2,239 +2,130 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Araç Bilgi Sistemi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --main-bg: #f4f7f9; --card-bg: #ffffff; --primary-color: #00d26a; --danger-color: #ef4444; }
-        body { background-color: var(--main-bg); font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 10px; }
-        .page-container { width: 100%; max-width: 500px; display: none; }
-        .profile-card { background: var(--card-bg); border-radius: 30px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; }
-        .card-header { background: #0f172a; padding: 40px 20px; color: white; }
-        .plaka-box { background: white; color: #0f172a; display: inline-block; padding: 10px 30px; border-radius: 12px; font-size: 2rem; font-weight: 800; }
-        .status-badge { display: inline-flex; align-items: center; padding: 8px 20px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; margin-bottom: 25px; }
-        .status-on { background: #f0fff4; color: #166534; border: 1px solid #dcfce7; }
-        .status-off { background: #fef2f2; color: #991b1b; border: 1px solid #fee2e2; }
-        .call-btn { background: var(--primary-color); color: white; padding: 18px; border-radius: 20px; font-size: 1.3rem; font-weight: 700; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 10px 20px rgba(0,210,106,0.3); }
-        .admin-card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .arac-item { border-bottom: 1px solid #eee; padding: 15px 0; text-align: left; }
+        :root { --main-bg: #f4f7f9; --card-bg: #ffffff; --primary-color: #00d26a; }
+        body { background-color: var(--main-bg); font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 15px; }
+        
+        .page-container { width: 100%; max-width: 400px; }
         .hidden { display: none !important; }
+
+        /* KARTVİZİT TASARIMI (image_40ac77.png referanslı) */
+        .profile-card { background: var(--card-bg); border-radius: 30px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; }
+        .card-header { background: #111827; padding: 35px 20px; color: white; }
+        .plaka-box { background: white; color: #111827; display: inline-block; padding: 8px 25px; border-radius: 12px; font-size: 1.8rem; font-weight: 800; margin-top: 10px; }
+        
+        .card-body { padding: 30px 20px; }
+        .status-badge { display: inline-flex; align-items: center; padding: 6px 18px; border-radius: 50px; font-weight: 600; font-size: 0.85rem; margin-bottom: 20px; background: #f0fff4; color: #166534; border: 1px solid #dcfce7; }
+        .status-dot { width: 8px; height: 8px; background: var(--primary-color); border-radius: 50%; margin-right: 8px; box-shadow: 0 0 8px var(--primary-color); }
+        
+        .call-btn { background: var(--primary-color); color: white; border: none; width: 100%; padding: 16px; border-radius: 18px; font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; box-shadow: 0 8px 15px rgba(0,210,106,0.2); }
+        .phone-num { display: block; margin-top: 20px; font-size: 1.3rem; font-weight: 700; color: #111827; }
+
+        /* LOADER */
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--main-bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
     </style>
 </head>
 <body>
 
-    <div id="loader" class="text-center">
+    <div id="loader">
         <div class="spinner-border text-primary" role="status"></div>
-        <p class="mt-2 text-muted" id="loader-text">Bilgiler doğrulanıyor...</p>
+        <p class="mt-3 text-muted fw-bold">Bilgiler Getiriliyor...</p>
     </div>
 
-    <div id="bilgiEkrani" class="page-container">
-        <div class="profile-card">
+    <div class="page-container">
+        <div id="bilgiEkrani" class="profile-card hidden">
             <div class="card-header">
-                <div class="small opacity-75 mb-2">ARAÇ SAHİBİ BİLGİSİ</div>
+                <div class="small opacity-75">ARAÇ SAHİBİ BİLGİSİ</div>
                 <div class="plaka-box" id="disp-plaka">---</div>
             </div>
-            <div class="card-body p-4">
-                <div id="statusBox" class="status-badge">
-                    <span id="disp-durum">Sorgulanıyor...</span>
+            <div class="card-body">
+                <div class="status-badge" id="statusBox">
+                    <span class="status-dot"></span> <span id="disp-durum">İLETİŞİME AÇIK</span>
                 </div>
-                <div id="iletisimVar">
-                    <p class="text-muted mb-4">Sürücüye aşağıdaki butondan ulaşabilirsiniz:</p>
-                    <a href="#" id="call-link" class="call-btn mb-3"><i class="fa fa-phone"></i> SÜRÜCÜYÜ ARA</a>
-                    <h4 id="disp-tel" class="fw-bold mt-3">---</h4>
+                
+                <div id="iletisimAlani">
+                    <p class="text-muted small mb-4">Acil durumlar için sürücüye ulaşabilirsiniz:</p>
+                    <a href="#" class="call-btn" id="call-link">
+                        <i class="fa-solid fa-phone"></i> SÜRÜCÜYÜ ARA
+                    </a>
+                    <span class="phone-num" id="disp-tel">---</span>
                 </div>
-                <div id="iletisimYok" class="hidden">
-                    <p class="text-danger fw-bold fs-5">Sürücü şu an iletişime kapalıdır.</p>
+
+                <div id="kapaliMesaj" class="hidden">
+                    <p class="text-danger fw-bold">Sürücü şu an iletişime kapalıdır.</p>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div id="adminPanel" class="page-container">
-        <div class="admin-card">
-            <div class="d-flex justify-content-between mb-3 align-items-center">
-                <h4 class="fw-bold mb-0">🛠 Yönetim</h4>
-                <button class="btn btn-sm btn-outline-danger" onclick="location.reload()">Kapat</button>
-            </div>
-            <button class="btn btn-success w-100 mb-4" onclick="yeniKayitModu()">+ Yeni Araç Ekle</button>
-            <div id="aracListesi">Veriler alınıyor...</div>
-        </div>
-    </div>
-
-    <div id="kayitEkrani" class="page-container">
-        <div class="admin-card">
-            <h4 id="formBaslik" class="mb-4">Araç Bilgileri</h4>
-            <input type="hidden" id="aracId">
-            <div class="mb-3 text-start"><label class="small fw-bold">Plaka</label><input type="text" id="plaka" class="form-control" placeholder="34ABC123"></div>
-            <div class="mb-3 text-start"><label class="small fw-bold">Telefon</label><input type="text" id="tel" class="form-control" placeholder="05xx"></div>
-            <div class="mb-3 text-start"><label class="small fw-bold">E-posta</label><input type="email" id="email" class="form-control"></div>
-            <div class="mb-3 text-start"><label class="small fw-bold">Şifre</label><input type="text" id="sifre" class="form-control"></div>
-            <div class="mb-3 text-start">
-                <label class="small fw-bold">Durum</label>
-                <select id="durum" class="form-select"><option value="ACIK">AÇIK</option><option value="KAPALI">KAPALI</option></select>
-            </div>
-            <button class="btn btn-primary w-100" onclick="kaydet()">Sisteme Kaydet</button>
-            <button class="btn btn-link w-100 mt-2 text-muted" onclick="panelAc('adminPanel')">Vazgeç</button>
-        </div>
-    </div>
-
-    <div id="anaSayfa" class="page-container text-center">
-        <div class="admin-card">
-            <h3 class="mb-4">🚗 Panel Girişi</h3>
-            <button class="btn btn-dark w-100 mb-3" onclick="adminGiris()">Yönetici Girişi</button>
-            <p class="small text-muted">Lütfen geçerli bir QR kod okutun.</p>
+        <div id="anaSayfa" class="profile-card p-4 hidden">
+            <h4 class="mb-4">🚗 Sistem Paneli</h4>
+            <button class="btn btn-dark w-100 py-3" onclick="adminGiris()">Yönetici Girişi</button>
+            <p class="mt-3 small text-muted">QR kod okutarak araç bilgilerine ulaşabilirsiniz.</p>
         </div>
     </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    // URL TANIMLAMALARI
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxjtURzAukqtwH4N1uEgGW7DirlvnFiG9bUNOrfglOjy-DU-hg6JF0JjKqDt4KmKe18/exec";
-    const GITHUB_URL = "https://mustafadost.github.io/Arac-Telefon/index.html";
 
     $(document).ready(function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const id = urlParams.get('id');
-
-        // Zaman aşımı kontrolü (10 saniye içinde veri gelmezse uyarı ver)
-        const timeout = setTimeout(function() {
-            if ($('#loader').is(':visible')) {
-                $('#loader-text').html("<span class='text-danger'>Bağlantı yavaş, lütfen sayfayı yenileyin.</span>");
-            }
-        }, 10000);
+        // Telefonlarda URL parametresini daha güvenli okumak için
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
 
         if (id) {
-            bilgiGetir(id);
+            veriyiCek(id);
         } else {
-            clearTimeout(timeout);
-            panelAc('anaSayfa');
+            $('#loader').fadeOut();
+            $('#anaSayfa').removeClass('hidden');
         }
     });
 
-    function panelAc(id) {
-        $('#loader').hide();
-        $('.page-container').hide();
-        $('#' + id).fadeIn();
-    }
-
-    function bilgiGetir(id) {
+    function veriyiCek(id) {
         $.ajax({
             url: SCRIPT_URL,
             dataType: "jsonp",
-            timeout: 8000,
+            timeout: 10000, // 10 saniye içinde yanıt gelmezse hata ver
             success: function(data) {
-                const a = data.find(x => x.id.toString() === id.toString());
-                if (a) {
-                    $('#disp-plaka').text(a.plaka);
-                    $('#disp-tel').text(a.tel);
-                    $('#call-link').attr('href', 'tel:' + a.tel);
-                    if(a.durum === 'ACIK') {
-                        $('#statusBox').addClass('status-on').removeClass('status-off');
-                        $('#disp-durum').text('İLETİŞİME AÇIK');
-                        $('#iletisimVar').show(); $('#iletisimYok').hide();
+                const arac = data.find(a => String(a.id) === String(id));
+                $('#loader').fadeOut();
+                
+                if (arac) {
+                    $('#disp-plaka').text(arac.plaka);
+                    $('#disp-tel').text(arac.tel);
+                    $('#call-link').attr('href', 'tel:' + arac.tel);
+                    
+                    if(arac.durum === 'ACIK') {
+                        $('#bilgiEkrani').removeClass('hidden');
                     } else {
-                        $('#statusBox').addClass('status-off').removeClass('status-on');
                         $('#disp-durum').text('İLETİŞİME KAPALI');
-                        $('#iletisimVar').hide(); $('#iletisimYok').show();
+                        $('#statusBox').css({'background':'#fef2f2', 'color':'#991b1b', 'border':'1px solid #fee2e2'});
+                        $('.status-dot').css({'background':'#ef4444', 'box-shadow':'none'});
+                        $('#iletisimAlani').addClass('hidden');
+                        $('#kapaliMesaj').removeClass('hidden');
+                        $('#bilgiEkrani').removeClass('hidden');
                     }
-                    panelAc('bilgiEkrani');
-                } else { 
-                    alert("Araç bulunamadı."); 
-                    panelAc('anaSayfa');
+                } else {
+                    alert("Araç kaydı bulunamadı.");
+                    $('#anaSayfa').removeClass('hidden');
                 }
             },
             error: function() {
-                alert("Veri alınırken bir ağ hatası oluştu.");
-                panelAc('anaSayfa');
+                $('#loader').html('<p class="text-danger p-3">Bağlantı Hatası! Lütfen internetinizi kontrol edip sayfayı yenileyin.</p>');
             }
         });
     }
 
     function adminGiris() {
         const pass = prompt("Yönetici Şifresi:");
-        if(pass === "1234") { panelAc('adminPanel'); listeYukle(); }
-        else if(pass) { alert("Hatalı şifre!"); }
-    }
-
-    function listeYukle() {
-        $('#aracListesi').text("Yükleniyor...");
-        $.ajax({
-            url: SCRIPT_URL, dataType: "jsonp",
-            success: function(data) {
-                let html = "";
-                data.forEach(x => {
-                    const fullLink = GITHUB_URL + "?id=" + x.id;
-                    html += `
-                    <div class="arac-item">
-                        <div class="d-flex justify-content-between">
-                            <b>${x.plaka}</b>
-                            <span class="badge ${x.durum=='ACIK'?'bg-success':'bg-danger'}">${x.durum}</span>
-                        </div>
-                        <div class="mt-2">
-                            <button class="btn btn-sm btn-primary" onclick="kopyala('${fullLink}')"><i class="fa fa-copy"></i> Linki Kopyala</button>
-                            <button class="btn btn-sm btn-outline-secondary ms-2" onclick='duzenle(${JSON.stringify(x)})'>Düzenle</button>
-                        </div>
-                    </div>`;
-                });
-                $('#aracListesi').html(html || "Kayıtlı araç bulunamadı.");
-            }
-        });
-    }
-
-    function kopyala(text) {
-        const dummy = document.createElement("textarea");
-        document.body.appendChild(dummy);
-        dummy.value = text;
-        dummy.select();
-        document.execCommand("copy");
-        document.body.removeChild(dummy);
-        alert("Link kopyalandı:\n" + text);
-    }
-
-    function yeniKayitModu() {
-        $('#aracId').val("");
-        $('#plaka').val("");
-        $('#tel').val("");
-        $('#email').val("");
-        $('#sifre').val("");
-        $('#formBaslik').text("Yeni Araç Ekle");
-        panelAc('kayitEkrani');
-    }
-
-    function duzenle(a) {
-        $('#aracId').val(a.id);
-        $('#plaka').val(a.plaka);
-        $('#tel').val(a.tel);
-        $('#email').val(a.email);
-        $('#sifre').val(a.sifre);
-        $('#durum').val(a.durum);
-        $('#formBaslik').text("Kaydı Düzenle");
-        panelAc('kayitEkrani');
-    }
-
-    function kaydet() {
-        const d = {
-            id: $('#aracId').val(),
-            plaka: $('#plaka').val().trim().toUpperCase().replace(/\s/g,''),
-            tel: $('#tel').val().trim(),
-            email: $('#email').val().trim(),
-            sifre: $('#sifre').val().trim(),
-            durum: $('#durum').val()
-        };
-        if(!d.plaka || !d.tel) return alert("Plaka ve Telefon boş bırakılamaz!");
-        
-        $('#loader').show();
-        $.ajax({
-            url: SCRIPT_URL,
-            data: { action: "aracKaydet", ...d },
-            dataType: "jsonp",
-            success: function(res) {
-                alert(res);
-                if(!res.includes("Hata")) { panelAc('adminPanel'); listeYukle(); }
-                else { $('#loader').hide(); }
-            }
-        });
+        if(pass === "1234") { 
+            // Admin yönlendirmesi buraya
+            alert("Yönetici girişi başarılı.");
+        }
     }
 </script>
 </body>
