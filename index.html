@@ -10,10 +10,12 @@
         :root { --main-bg: #f4f7f9; --card-bg: #ffffff; --primary-color: #00d26a; --danger-color: #ef4444; }
         body { background-color: var(--main-bg); font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
         
-        /* Ekranlar başta görünmesin (Sıçramayı engeller) */
+        /* Ekran Sıçramasını Engelleyen Temel Stil */
+        .page-container { opacity: 0; transition: opacity 0.4s ease-in; width: 100%; max-width: 400px; }
+        .visible { opacity: 1 !important; }
         .hidden { display: none !important; }
 
-        .profile-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 30px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; }
+        .profile-card { background: var(--card-bg); width: 100%; border-radius: 30px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; }
         .card-header { background: #0f172a; padding: 40px 20px; color: white; }
         .header-title { font-size: 0.8rem; letter-spacing: 2px; opacity: 0.7; margin-bottom: 15px; text-transform: uppercase; }
         .plaka-box { background: white; color: #0f172a; display: inline-block; padding: 10px 30px; border-radius: 12px; font-size: 2rem; font-weight: 800; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
@@ -22,19 +24,15 @@
         .status-badge { display: inline-flex; align-items: center; padding: 8px 20px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; margin-bottom: 25px; }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 10px; }
         
-        /* Aktif Durum */
+        /* Durum Renkleri */
         .status-on { background: #f0fff4; color: #166534; border: 1px solid #dcfce7; }
         .status-on .status-dot { background: var(--primary-color); box-shadow: 0 0 10px var(--primary-color); }
-        
-        /* Kapalı Durum */
         .status-off { background: #fef2f2; color: #991b1b; border: 1px solid #fee2e2; }
         .status-off .status-dot { background: var(--danger-color); box-shadow: 0 0 10px var(--danger-color); }
         
         .info-text { color: #64748b; font-size: 1rem; margin-bottom: 30px; }
-        
-        .call-btn { background: var(--primary-color); color: white; border: none; width: 100%; padding: 18px; border-radius: 20px; font-size: 1.3rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 15px; text-decoration: none; box-shadow: 0 10px 20px rgba(0,210,106,0.3); }
-        .call-btn:hover { color: white; opacity: 0.9; }
-        
+        .call-btn { background: var(--primary-color); color: white; border: none; width: 100%; padding: 18px; border-radius: 20px; font-size: 1.3rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 15px; text-decoration: none; box-shadow: 0 10px 20px rgba(0,210,106,0.3); transition: 0.2s; }
+        .call-btn:hover { color: white; transform: translateY(-2px); }
         .phone-number { display: block; margin-top: 25px; font-size: 1.4rem; font-weight: 700; color: #0f172a; }
         .admin-link { margin-top: 30px; font-size: 0.8rem; color: #cbd5e1; text-decoration: none; cursor: pointer; display: block; }
     </style>
@@ -43,46 +41,49 @@
 
     <div id="loader" class="text-center">
         <div class="spinner-border text-primary" role="status"></div>
-        <p class="mt-2 text-muted">Bilgiler getiriliyor...</p>
+        <p class="mt-2 text-muted">Yükleniyor...</p>
     </div>
 
-    <div id="bilgiEkrani" class="profile-card hidden">
-        <div class="card-header">
-            <div class="header-title">ARAÇ SAHİBİ BİLGİSİ</div>
-            <div class="plaka-box" id="disp-plaka">---</div>
-        </div>
-        <div class="card-body">
-            <div id="statusContainer" class="status-badge">
-                <span class="status-dot"></span> <span id="disp-durum">---</span>
+    <div id="mainContainer" class="page-container">
+        <div id="bilgiEkrani" class="profile-card hidden">
+            <div class="card-header">
+                <div class="header-title">ARAÇ SAHİBİ BİLGİSİ</div>
+                <div class="plaka-box" id="disp-plaka">---</div>
             </div>
-            
-            <div id="iletisimAlani">
-                <p class="info-text">Acil durumlar için sürücüye ulaşabilirsiniz:</p>
-                <a href="#" class="call-btn" id="call-link">
-                    <i class="fa-solid fa-phone-flip"></i> SÜRÜCÜYÜ ARA
-                </a>
-                <span class="phone-number" id="disp-tel">---</span>
-            </div>
+            <div class="card-body">
+                <div id="statusContainer" class="status-badge">
+                    <span class="status-dot"></span> <span id="disp-durum">---</span>
+                </div>
+                
+                <div id="iletisimAlani" class="hidden">
+                    <p class="info-text">Acil durumlar için sürücüye ulaşabilirsiniz:</p>
+                    <a href="#" class="call-btn" id="call-link">
+                        <i class="fa-solid fa-phone-flip"></i> SÜRÜCÜYÜ ARA
+                    </a>
+                    <span class="phone-number" id="disp-tel">---</span>
+                </div>
 
-            <div id="kapaliMesaj" class="hidden">
-                <p class="text-danger fw-bold">Sürücü şu anda iletişime kapalıdır.</p>
-                <p class="small text-muted">Lütfen daha sonra tekrar deneyiniz.</p>
+                <div id="kapaliMesaj" class="hidden">
+                    <p class="text-danger fw-bold fs-5">Sürücü şu anda iletişime kapalıdır.</p>
+                    <p class="text-muted">Lütfen daha sonra tekrar deneyiniz.</p>
+                </div>
+                
+                <a href="index.html" class="admin-link">Sorgulama Ekranına Dön</a>
             </div>
-            
-            <a href="index.html" class="admin-link">Sorgulama Ekranına Dön</a>
         </div>
-    </div>
 
-    <div id="anaSayfa" class="profile-card p-4 hidden">
-        <h3 class="mb-4">🚗 Plaka Sorgula</h3>
-        <input type="text" id="sorguPlaka" class="form-control form-control-lg mb-3" placeholder="Örn: 34ABC123">
-        <button class="btn btn-primary w-100 btn-lg mb-3" onclick="sorgula()">Sorgula</button>
-        <hr>
-        <span class="admin-link" onclick="adminGiris()">Yönetici Girişi</span>
+        <div id="anaSayfa" class="profile-card p-4 hidden">
+            <h3 class="mb-4">🚗 Plaka Sorgula</h3>
+            <input type="text" id="sorguPlaka" class="form-control form-control-lg mb-3" placeholder="Örn: 34ABC123">
+            <button class="btn btn-primary w-100 btn-lg mb-3" onclick="sorgula()">Sorgula</button>
+            <hr>
+            <span class="admin-link" onclick="adminGiris()">Yönetici Girişi</span>
+        </div>
     </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+    // Buraya Kendi Apps Script Linkini Yapıştır
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxjtURzAukqtwH4N1uEgGW7DirlvnFiG9bUNOrfglOjy-DU-hg6JF0JjKqDt4KmKe18/exec";
 
     $(document).ready(function() {
@@ -92,10 +93,16 @@
         if (id) {
             veriyiGetir(id);
         } else {
-            $('#loader').addClass('hidden');
-            $('#anaSayfa').removeClass('hidden');
+            goster('anaSayfa');
         }
     });
+
+    function goster(ekranId) {
+        $('#loader').addClass('hidden');
+        $('.profile-card').addClass('hidden');
+        $('#' + ekranId).removeClass('hidden');
+        $('#mainContainer').addClass('visible');
+    }
 
     function veriyiGetir(id) {
         $.ajax({
@@ -103,45 +110,39 @@
             dataType: "jsonp",
             success: function(data) {
                 const arac = data.find(a => a.id.toString() === id.toString());
-                $('#loader').addClass('hidden');
                 
                 if (arac) {
                     $('#disp-plaka').text(arac.plaka);
-                    $('#bilgiEkrani').removeClass('hidden');
-
+                    
                     if (arac.durum === 'ACIK') {
-                        // AÇIK DURUMU
+                        // İletişime Açık Ayarları
                         $('#statusContainer').addClass('status-on').removeClass('status-off');
                         $('#disp-durum').text('İLETİŞİME AÇIK');
-                        $('#iletisimAlani').removeClass('hidden');
+                        $('#iletisimAlani').removeClass('hidden'); // Buton ve No Göster
                         $('#kapaliMesaj').addClass('hidden');
                         $('#disp-tel').text(arac.tel);
                         $('#call-link').attr('href', 'tel:' + arac.tel);
                     } else {
-                        // KAPALI DURUMU
+                        // İletişime Kapalı Ayarları
                         $('#statusContainer').addClass('status-off').removeClass('status-on');
                         $('#disp-durum').text('İLETİŞİME KAPALI');
-                        $('#iletisimAlani').addClass('hidden'); // Buton ve No Gizle
+                        $('#iletisimAlani').addClass('hidden'); // Buton ve No Kesin Gizle
                         $('#kapaliMesaj').removeClass('hidden'); // Uyarı Mesajı Göster
                     }
+                    goster('bilgiEkrani');
                 } else {
                     alert("Araç bulunamadı!");
-                    $('#anaSayfa').removeClass('hidden');
+                    goster('anaSayfa');
                 }
-            },
-            error: function() {
-                alert("Veri çekilemedi!");
-                $('#loader').addClass('hidden');
-                $('#anaSayfa').removeClass('hidden');
             }
         });
     }
 
     function sorgula() {
         const p = $('#sorguPlaka').val().toUpperCase().replace(/\s/g, '');
-        if(!p) return alert("Plaka girin.");
+        if(!p) return;
         
-        $('#anaSayfa').addClass('hidden');
+        $('#mainContainer').removeClass('visible');
         $('#loader').removeClass('hidden');
 
         $.ajax({
@@ -149,20 +150,10 @@
             dataType: "jsonp",
             success: function(data) {
                 const a = data.find(x => x.plaka.replace(/\s/g, '') === p);
-                if(a) {
-                    window.location.search = "?id=" + a.id;
-                } else { 
-                    alert("Araç bulunamadı.");
-                    $('#loader').addClass('hidden');
-                    $('#anaSayfa').removeClass('hidden');
-                }
+                if(a) { window.location.search = "?id=" + a.id; } 
+                else { alert("Bulunamadı."); goster('anaSayfa'); }
             }
         });
-    }
-
-    function adminGiris() {
-        const p = prompt("Yönetici Şifresi:");
-        if(p === "1234") { alert("Yönetim özellikleri eklenebilir."); }
     }
 </script>
 </body>
