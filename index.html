@@ -34,7 +34,6 @@
         .call-btn { background: var(--primary-color); color: white; border: none; width: 100%; padding: 18px; border-radius: 20px; font-size: 1.3rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 15px; text-decoration: none; box-shadow: 0 10px 20px rgba(0,210,106,0.3); transition: 0.2s; }
         .call-btn:hover { color: white; transform: translateY(-2px); }
         .phone-number { display: block; margin-top: 25px; font-size: 1.4rem; font-weight: 700; color: #0f172a; }
-        .admin-link { margin-top: 30px; font-size: 0.8rem; color: #cbd5e1; text-decoration: none; cursor: pointer; display: block; }
     </style>
 </head>
 <body>
@@ -67,23 +66,19 @@
                     <p class="text-danger fw-bold fs-5">Sürücü şu anda iletişime kapalıdır.</p>
                     <p class="text-muted">Lütfen daha sonra tekrar deneyiniz.</p>
                 </div>
-                
-                <a href="index.html" class="admin-link">Sorgulama Ekranına Dön</a>
             </div>
         </div>
 
         <div id="anaSayfa" class="profile-card p-4 hidden">
-            <h3 class="mb-4">🚗 Plaka Sorgula</h3>
+            <h3 class="mb-4">🚗 Sistem Girişi</h3>
+            <p class="text-muted">Lütfen bir plaka sorgulayın veya QR kodu kullanın.</p>
             <input type="text" id="sorguPlaka" class="form-control form-control-lg mb-3" placeholder="Örn: 34ABC123">
             <button class="btn btn-primary w-100 btn-lg mb-3" onclick="sorgula()">Sorgula</button>
-            <hr>
-            <span class="admin-link" onclick="adminGiris()">Yönetici Girişi</span>
         </div>
     </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    // Buraya Kendi Apps Script Linkini Yapıştır
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxjtURzAukqtwH4N1uEgGW7DirlvnFiG9bUNOrfglOjy-DU-hg6JF0JjKqDt4KmKe18/exec";
 
     $(document).ready(function() {
@@ -115,19 +110,17 @@
                     $('#disp-plaka').text(arac.plaka);
                     
                     if (arac.durum === 'ACIK') {
-                        // İletişime Açık Ayarları
                         $('#statusContainer').addClass('status-on').removeClass('status-off');
                         $('#disp-durum').text('İLETİŞİME AÇIK');
-                        $('#iletisimAlani').removeClass('hidden'); // Buton ve No Göster
+                        $('#iletisimAlani').removeClass('hidden');
                         $('#kapaliMesaj').addClass('hidden');
                         $('#disp-tel').text(arac.tel);
                         $('#call-link').attr('href', 'tel:' + arac.tel);
                     } else {
-                        // İletişime Kapalı Ayarları
                         $('#statusContainer').addClass('status-off').removeClass('status-on');
                         $('#disp-durum').text('İLETİŞİME KAPALI');
-                        $('#iletisimAlani').addClass('hidden'); // Buton ve No Kesin Gizle
-                        $('#kapaliMesaj').removeClass('hidden'); // Uyarı Mesajı Göster
+                        $('#iletisimAlani').addClass('hidden');
+                        $('#kapaliMesaj').removeClass('hidden');
                     }
                     goster('bilgiEkrani');
                 } else {
@@ -141,10 +134,8 @@
     function sorgula() {
         const p = $('#sorguPlaka').val().toUpperCase().replace(/\s/g, '');
         if(!p) return;
-        
         $('#mainContainer').removeClass('visible');
         $('#loader').removeClass('hidden');
-
         $.ajax({
             url: SCRIPT_URL,
             dataType: "jsonp",
