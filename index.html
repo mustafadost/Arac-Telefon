@@ -7,63 +7,82 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --main-bg: #f4f7f9; --card-bg: #ffffff; --primary-color: #00d26a; }
+        :root { --main-bg: #f4f7f9; --card-bg: #ffffff; --primary-color: #00d26a; --danger-color: #ef4444; }
         body { background-color: var(--main-bg); font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
         
-        /* GÖRSELDEKİ KART TASARIMI */
+        /* Ekranlar başta görünmesin (Sıçramayı engeller) */
+        .hidden { display: none !important; }
+
         .profile-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 30px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; }
-        .card-header { background: #0f172a; padding: 40px 20px; color: white; position: relative; }
-        .header-title { font-size: 0.9rem; letter-spacing: 2px; opacity: 0.8; margin-bottom: 20px; text-transform: uppercase; }
-        .plaka-box { background: white; color: #0f172a; display: inline-block; padding: 10px 35px; border-radius: 12px; font-size: 2.2rem; font-weight: 800; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        .card-header { background: #0f172a; padding: 40px 20px; color: white; }
+        .header-title { font-size: 0.8rem; letter-spacing: 2px; opacity: 0.7; margin-bottom: 15px; text-transform: uppercase; }
+        .plaka-box { background: white; color: #0f172a; display: inline-block; padding: 10px 30px; border-radius: 12px; font-size: 2rem; font-weight: 800; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
         
         .card-body { padding: 40px 30px; }
-        .status-badge { display: inline-flex; align-items: center; background: #f0fff4; color: #166534; padding: 8px 20px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; margin-bottom: 25px; border: 1px solid #dcfce7; }
-        .status-dot { width: 8px; height: 8px; background: var(--primary-color); border-radius: 50%; margin-right: 10px; box-shadow: 0 0 10px var(--primary-color); }
+        .status-badge { display: inline-flex; align-items: center; padding: 8px 20px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; margin-bottom: 25px; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 10px; }
         
-        .info-text { color: #64748b; font-size: 1rem; margin-bottom: 30px; line-height: 1.5; }
-        .call-btn { background: var(--primary-color); color: white; border: none; width: 100%; padding: 18px; border-radius: 20px; font-size: 1.3rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 15px; text-decoration: none; transition: 0.3s; box-shadow: 0 10px 20px rgba(0,210,106,0.3); }
-        .call-btn:hover { background: #00b35a; transform: translateY(-2px); color: white; }
-        .phone-number { display: block; margin-top: 25px; font-size: 1.4rem; font-weight: 700; color: #0f172a; letter-spacing: 1px; }
-
-        /* SORGULAMA EKRANI (ADMIN İÇİN) */
-        .hidden { display: none; }
-        .admin-link { margin-top: 30px; font-size: 0.8rem; color: #cbd5e1; text-decoration: none; cursor: pointer; }
+        /* Aktif Durum */
+        .status-on { background: #f0fff4; color: #166534; border: 1px solid #dcfce7; }
+        .status-on .status-dot { background: var(--primary-color); box-shadow: 0 0 10px var(--primary-color); }
+        
+        /* Kapalı Durum */
+        .status-off { background: #fef2f2; color: #991b1b; border: 1px solid #fee2e2; }
+        .status-off .status-dot { background: var(--danger-color); box-shadow: 0 0 10px var(--danger-color); }
+        
+        .info-text { color: #64748b; font-size: 1rem; margin-bottom: 30px; }
+        
+        .call-btn { background: var(--primary-color); color: white; border: none; width: 100%; padding: 18px; border-radius: 20px; font-size: 1.3rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 15px; text-decoration: none; box-shadow: 0 10px 20px rgba(0,210,106,0.3); }
+        .call-btn:hover { color: white; opacity: 0.9; }
+        
+        .phone-number { display: block; margin-top: 25px; font-size: 1.4rem; font-weight: 700; color: #0f172a; }
+        .admin-link { margin-top: 30px; font-size: 0.8rem; color: #cbd5e1; text-decoration: none; cursor: pointer; display: block; }
     </style>
 </head>
 <body>
 
+    <div id="loader" class="text-center">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2 text-muted">Bilgiler getiriliyor...</p>
+    </div>
+
     <div id="bilgiEkrani" class="profile-card hidden">
         <div class="card-header">
             <div class="header-title">ARAÇ SAHİBİ BİLGİSİ</div>
-            <div class="plaka-box" id="disp-plaka">34NB7055</div>
+            <div class="plaka-box" id="disp-plaka">---</div>
         </div>
         <div class="card-body">
-            <div class="status-badge" id="disp-badge">
-                <span class="status-dot"></span> <span id="disp-durum">İLETİŞİME AÇIK</span>
+            <div id="statusContainer" class="status-badge">
+                <span class="status-dot"></span> <span id="disp-durum">---</span>
             </div>
-            <p class="info-text">Acil durumlar için sürücüye ulaşabilirsiniz:</p>
             
-            <a href="tel:05322819838" class="call-btn" id="call-link">
-                <i class="fa-solid fa-phone-flip"></i> SÜRÜCÜYÜ ARA
-            </a>
+            <div id="iletisimAlani">
+                <p class="info-text">Acil durumlar için sürücüye ulaşabilirsiniz:</p>
+                <a href="#" class="call-btn" id="call-link">
+                    <i class="fa-solid fa-phone-flip"></i> SÜRÜCÜYÜ ARA
+                </a>
+                <span class="phone-number" id="disp-tel">---</span>
+            </div>
+
+            <div id="kapaliMesaj" class="hidden">
+                <p class="text-danger fw-bold">Sürücü şu anda iletişime kapalıdır.</p>
+                <p class="small text-muted">Lütfen daha sonra tekrar deneyiniz.</p>
+            </div>
             
-            <span class="phone-number" id="disp-tel">0532 281 98 38</span>
-            
-            <a onclick="location.href='index.html'" class="admin-link d-block">Sorgulama Ekranına Dön</a>
+            <a href="index.html" class="admin-link">Sorgulama Ekranına Dön</a>
         </div>
     </div>
 
-    <div id="anaSayfa" class="profile-card p-4">
-        <h3 class="mb-4">🚗 Sistem Girişi</h3>
-        <input type="text" id="sorguPlaka" class="form-control form-control-lg mb-3" placeholder="Plaka Girin">
-        <button class="btn btn-primary w-100 btn-lg mb-3" onclick="sorgula()">Bilgileri Göster</button>
+    <div id="anaSayfa" class="profile-card p-4 hidden">
+        <h3 class="mb-4">🚗 Plaka Sorgula</h3>
+        <input type="text" id="sorguPlaka" class="form-control form-control-lg mb-3" placeholder="Örn: 34ABC123">
+        <button class="btn btn-primary w-100 btn-lg mb-3" onclick="sorgula()">Sorgula</button>
         <hr>
-        <span class="admin-link" onclick="adminGiris()">Yönetici Paneli</span>
+        <span class="admin-link" onclick="adminGiris()">Yönetici Girişi</span>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    // --- BURAYA KENDİ URL'Nİ YAPIŞTIR ---
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxjtURzAukqtwH4N1uEgGW7DirlvnFiG9bUNOrfglOjy-DU-hg6JF0JjKqDt4KmKe18/exec";
 
     $(document).ready(function() {
@@ -71,8 +90,10 @@
         const id = urlParams.get('id');
 
         if (id) {
-            // Eğer URL'de ID varsa (QR kod), doğrudan veriyi çek ve kartı göster
             veriyiGetir(id);
+        } else {
+            $('#loader').addClass('hidden');
+            $('#anaSayfa').removeClass('hidden');
         }
     });
 
@@ -82,22 +103,36 @@
             dataType: "jsonp",
             success: function(data) {
                 const arac = data.find(a => a.id.toString() === id.toString());
+                $('#loader').addClass('hidden');
+                
                 if (arac) {
                     $('#disp-plaka').text(arac.plaka);
-                    $('#disp-durum').text(arac.durum === 'ACIK' ? 'İLETİŞİME AÇIK' : 'İLETİŞİME KAPALI');
-                    $('#disp-tel').text(arac.tel);
-                    $('#call-link').attr('href', 'tel:' + arac.tel);
-                    
-                    if(arac.durum !== 'ACIK') {
-                        $('.status-dot').css('background', '#ef4444').css('box-shadow', '0 0 10px #ef4444');
-                        $('#disp-badge').css('background', '#fef2f2').css('color', '#991b1b');
-                    }
-
-                    $('#anaSayfa').addClass('hidden');
                     $('#bilgiEkrani').removeClass('hidden');
+
+                    if (arac.durum === 'ACIK') {
+                        // AÇIK DURUMU
+                        $('#statusContainer').addClass('status-on').removeClass('status-off');
+                        $('#disp-durum').text('İLETİŞİME AÇIK');
+                        $('#iletisimAlani').removeClass('hidden');
+                        $('#kapaliMesaj').addClass('hidden');
+                        $('#disp-tel').text(arac.tel);
+                        $('#call-link').attr('href', 'tel:' + arac.tel);
+                    } else {
+                        // KAPALI DURUMU
+                        $('#statusContainer').addClass('status-off').removeClass('status-on');
+                        $('#disp-durum').text('İLETİŞİME KAPALI');
+                        $('#iletisimAlani').addClass('hidden'); // Buton ve No Gizle
+                        $('#kapaliMesaj').removeClass('hidden'); // Uyarı Mesajı Göster
+                    }
                 } else {
                     alert("Araç bulunamadı!");
+                    $('#anaSayfa').removeClass('hidden');
                 }
+            },
+            error: function() {
+                alert("Veri çekilemedi!");
+                $('#loader').addClass('hidden');
+                $('#anaSayfa').removeClass('hidden');
             }
         });
     }
@@ -106,6 +141,9 @@
         const p = $('#sorguPlaka').val().toUpperCase().replace(/\s/g, '');
         if(!p) return alert("Plaka girin.");
         
+        $('#anaSayfa').addClass('hidden');
+        $('#loader').removeClass('hidden');
+
         $.ajax({
             url: SCRIPT_URL,
             dataType: "jsonp",
@@ -113,17 +151,18 @@
                 const a = data.find(x => x.plaka.replace(/\s/g, '') === p);
                 if(a) {
                     window.location.search = "?id=" + a.id;
-                } else { alert("Araç bulunamadı."); }
+                } else { 
+                    alert("Araç bulunamadı.");
+                    $('#loader').addClass('hidden');
+                    $('#anaSayfa').removeClass('hidden');
+                }
             }
         });
     }
 
     function adminGiris() {
         const p = prompt("Yönetici Şifresi:");
-        if(p === "1234") {
-            // Buraya senin admin paneli kodların gelecek veya sayfayı yönlendirecek
-            alert("Admin paneli aktif.");
-        }
+        if(p === "1234") { alert("Yönetim özellikleri eklenebilir."); }
     }
 </script>
 </body>
