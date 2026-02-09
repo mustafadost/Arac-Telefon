@@ -24,7 +24,7 @@
 
     <div id="loader" class="text-center">
         <div class="spinner-border text-primary"></div>
-        <p class="mt-2 fw-bold text-muted">Bağlantı Kuruluyor...</p>
+        <p class="mt-2 fw-bold text-muted">Araç Bilgileri Getiriliyor...</p>
     </div>
 
     <div id="bilgiEkrani" class="profile-card hidden">
@@ -52,20 +52,22 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        // SON ALDIĞIN GÜNCEL LİNK
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxGQlifjrKtsXI2G-Uz7yiHMe-XJSS5BFMFAUab5JjR9bfU94PS26luCzRT3RFUd5Oi/exec";
 
         $(document).ready(function() {
-            const id = new URLSearchParams(window.location.search).get('id');
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+
             if (id) {
                 $.ajax({
                     url: SCRIPT_URL,
                     dataType: "jsonp",
-                    jsonpCallback: "callback", // Google'dan gelen paket ismini (callback) burada açıyoruz
+                    jsonpCallback: "callback", // Google'dan gelen veriyi burada çözüyoruz
                     timeout: 10000,
                     success: function(data) {
                         $('#loader').hide();
                         const a = data.find(x => String(x.id) === String(id));
+                        
                         if (a) {
                             $('#plakaNo').text(a.plaka);
                             if (a.durum === "ACIK") {
@@ -83,11 +85,11 @@
                             }
                             $('#bilgiEkrani').removeClass('hidden');
                         } else {
-                            $('#loader').html('<p class="text-danger">Kayıt Bulunamadı.</p>');
+                            $('#loader').html('<p class="text-danger">Araç Bulunamadı.</p>');
                         }
                     },
                     error: function() {
-                        $('#loader').html('<p class="text-danger">Bağlantı Hatası!<br><small>Lütfen internetinizi kontrol edip yenileyin.</small></p>');
+                        $('#loader').html('<p class="text-danger">Bağlantı Hatası!<br><small>Lütfen internetinizi kontrol edin.</small></p>');
                     }
                 });
             } else {
