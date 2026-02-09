@@ -2,35 +2,47 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Araç Telefon</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Araç İletişim Sistemi</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 300px; display: none; }
-        .plaka { font-size: 28px; font-weight: bold; border: 3px solid #1a202c; display: inline-block; padding: 10px 20px; border-radius: 10px; margin-bottom: 20px; color: #1a202c; }
-        .btn { background: #22c55e; color: white; text-decoration: none; padding: 18px; border-radius: 12px; display: block; font-weight: bold; font-size: 1.2rem; }
-        #loader { font-weight: bold; color: #555; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f7f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 35px 25px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 350px; display: none; }
+        .plaka { font-size: 2.2rem; font-weight: 800; border: 3px solid #111827; display: inline-block; padding: 8px 20px; border-radius: 12px; margin-bottom: 25px; color: #111827; letter-spacing: 1px; }
+        .btn-ara { background: #22c55e; color: white; text-decoration: none; padding: 18px; border-radius: 15px; display: block; font-weight: bold; font-size: 1.3rem; box-shadow: 0 5px 15px rgba(34, 197, 94, 0.3); transition: 0.2s; }
+        .btn-ara:active { transform: scale(0.98); opacity: 0.9; }
+        #loader { text-align: center; color: #666; font-weight: 600; }
+        .status-msg { font-size: 0.9rem; color: #666; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-    <div id="loader">Bilgiler Getiriliyor...</div>
+    <div id="loader">
+        <div style="border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px;"></div>
+        Bilgiler Getiriliyor...
+    </div>
 
     <div id="bilgiKarti" class="card">
         <div class="plaka" id="plakaNo">---</div>
-        <div id="aktif">
-            <p style="color:#666; margin-bottom:20px;">Sürücüye ulaşmak için:</p>
-            <a href="" id="telButon" class="btn">SÜRÜCÜYÜ ARA</a>
-            <h3 id="telYazi" style="margin-top:20px;"></h3>
+        
+        <div id="aktifBolum">
+            <div class="status-msg">Sürücüye ulaşmak için aşağıdaki butona dokunun:</div>
+            <a href="" id="telButon" class="btn-ara">📞 SÜRÜCÜYÜ ARA</a>
+            <h3 id="telYazi" style="margin-top:20px; color: #111827;"></h3>
         </div>
-        <div id="kapali" style="display:none; color:#ef4444; font-weight:bold; padding:20px;">
-            Sürücü şu an iletişime kapalıdır.
+
+        <div id="kapaliBolum" style="display:none;">
+            <div style="background: #fef2f2; color: #991b1b; padding: 15px; border-radius: 12px; font-weight: bold; border: 1px solid #fee2e2;">
+                Sürücü şu an iletişime kapalıdır.
+            </div>
+            <p style="font-size: 0.8rem; color: #666; margin-top: 15px;">Lütfen daha sonra tekrar deneyiniz.</p>
         </div>
     </div>
 
+    <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+
     <script>
-        // GOOGLE'DAN KOPYALADIĞIN LİNKİ BURAYA YAPIŞTIR
+        // SENİN SON PAYLAŞTIĞIN ÇALIŞAN LİNK
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJps4mg6Roa-QuVH6L1RpIO4ELRsu4AeWIuai5WCa24E8IHlsRRVrXyWJfpY7vIrrk/exec";
 
         $(document).ready(function() {
@@ -38,35 +50,38 @@
             const id = urlParams.get('id');
 
             if (!id) {
-                $("#loader").text("ID bulunamadı. Lütfen QR kodu okutun.");
+                $("#loader").text("Lütfen geçerli bir QR kod okutun.");
                 return;
             }
 
             $.ajax({
                 url: SCRIPT_URL,
                 dataType: "jsonp",
-                timeout: 10000,
+                timeout: 15000,
                 success: function(data) {
+                    // ID'ye göre doğru aracı bul (Verideki 'id' ve URL'deki 'id' eşleşmesi)
                     const arac = data.find(x => String(x.id) === String(id));
                     $("#loader").hide();
                     
                     if (arac) {
                         $("#plakaNo").text(arac.plaka);
-                        if (arac.durum === "ACIK") {
+                        
+                        if (String(arac.durum).toUpperCase() === "ACIK") {
                             $("#telButon").attr("href", "tel:" + arac.tel);
                             $("#telYazi").text(arac.tel);
-                            $("#aktif").show();
+                            $("#aktifBolum").show();
+                            $("#kapaliBolum").hide();
                         } else {
-                            $("#aktif").hide();
-                            $("#kapali").show();
+                            $("#aktifBolum").hide();
+                            $("#kapaliBolum").show();
                         }
                         $("#bilgiKarti").fadeIn();
                     } else {
-                        $("#loader").text("Hata: Araç kaydı bulunamadı.");
+                        $("#loader").html("<span style='color:red;'>Hata: Araç kaydı bulunamadı!</span>");
                     }
                 },
                 error: function() {
-                    $("#loader").text("Bağlantı hatası! Lütfen internetinizi kontrol edip sayfayı yenileyin.");
+                    $("#loader").html("<span style='color:red;'>Bağlantı Hatası!</span><br><button onclick='location.reload()' style='margin-top:10px; padding:5px 15px;'>Yenile</button>");
                 }
             });
         });
