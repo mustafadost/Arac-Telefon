@@ -86,24 +86,52 @@
         </div>
     </div>
 
-    <script>
-        /* ÖNEMLİ: BURAYI GOOGLE SCRIPT'TEN ALDIĞIN /exec İLE BİTEN LİNKLE DEĞİŞTİR */
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby6Vpgc7uilr7V9RB-K8um2jJtDhCFFpm3U4B-i3SqZ_gOr2xf_WjrO95uJjKLJb_5vQA/exec"; 
+   <script>
+    // 1. BURADAKİ URL'NİN SONUNUN /exec OLDUĞUNDAN EMİN OL
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby6Vpgc7uilr7V9RB-K8um2jJtDhCFFpm3U4B-i3SqZ_gOr2xf_WjrO95uJjKLJb_5vQA/exec"; 
 
-        const params = new URLSearchParams(window.location.search);
-        const id = params.get('id');
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
 
-        if(id) {
-            const script = document.createElement('script');
-            // JSONP callback mekanizması: Lütfen bekleyin yazısını bu tetikler
-            script.src = SCRIPT_URL + "?id=" + id + "&callback=render";
-            script.onerror = function() {
-                document.getElementById('loader').innerText = "BAĞLANTI HATASI! (URL KONTROL EDİN)";
-            };
-            document.body.appendChild(script);
-        } else {
-            document.getElementById('loader').innerText = "GEÇERSİZ ARAÇ ID!";
+    // Veri çekme fonksiyonu
+    function render(data) {
+        console.log("Veri geldi:", data); // Tarayıcı konsolunda kontrol etmek için
+        const u = data.find(x => x.id == id);
+        
+        if(!u) {
+            document.getElementById('loader').innerText = "ARAÇ BULUNAMADI!";
+            return;
         }
 
-        function render(data) {
-            const u = data.find(x => x.
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('main-ui').style.display = 'block';
+        document.getElementById('plaka-box').innerText = u.plaka;
+
+        const statusContainer = document.getElementById('status-container');
+        const actionArea = document.getElementById('action-area');
+        const phoneDisplay = document.getElementById('phone-display');
+
+        if(u.durum === "ACIK") {
+            statusContainer.innerHTML = `<div class="status-badge">● İLETİŞİME AÇIK</div>`;
+            actionArea.innerHTML = `<a href="tel:${u.tel}" class="btn-call">📞 SÜRÜCÜYÜ ARA</a>`;
+            phoneDisplay.innerText = u.tel;
+        } else {
+            statusContainer.innerHTML = `<div class="status-badge" style="background:#ffebee; color:#c62828; border-color:#ffcdd2;">● ŞU AN MEŞGUL</div>`;
+            actionArea.innerHTML = `<div style="padding:20px; background:#f8fafc; border-radius:20px; color:#64748b; font-size:14px; border:1px dashed #cbd5e1;">Sürücü şu anda müsait değil.</div>`;
+            phoneDisplay.innerText = "";
+        }
+    }
+
+    // Script'i sayfaya ekleme
+    if(id) {
+        const script = document.createElement('script');
+        // URL'ye rastgele bir sayı ekleyerek önbelleği (cache) temizliyoruz
+        script.src = SCRIPT_URL + "?id=" + id + "&callback=render&t=" + new Date().getTime();
+        script.onerror = function() {
+            document.getElementById('loader').innerText = "BAĞLANTI HATASI! Lütfen URL'yi kontrol edin.";
+        };
+        document.body.appendChild(script);
+    } else {
+        document.getElementById('loader').innerText = "GEÇERSİZ ARAÇ ID!";
+    }
+</script>
