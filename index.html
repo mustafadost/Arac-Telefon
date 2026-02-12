@@ -9,18 +9,19 @@
         body { font-family: 'Inter', sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .card { background: white; width: 350px; border-radius: 45px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; text-align: center; display: none; }
         .header { background: linear-gradient(180deg, #1e293b, #0f172a); padding: 45px 20px; color: white; }
-        .header-title { font-size: 13px; letter-spacing: 2px; color: #94a3b8; text-transform: uppercase; margin-bottom: 20px; }
+        .header-title { font-size: 13px; letter-spacing: 2px; color: #94a3b8; text-transform: uppercase; margin-bottom: 20px; font-weight: 600; }
         .plaka { font-size: 34px; font-weight: 900; background: white; color: #1e293b; padding: 10px 30px; border-radius: 18px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .content { padding: 40px 30px; }
         .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 10px 25px; border-radius: 50px; font-weight: 700; font-size: 15px; margin-bottom: 25px; background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
-        .instruction { color: #64748b; font-size: 15px; margin-bottom: 30px; }
-        .btn-call { display: flex; align-items: center; justify-content: center; gap: 12px; background: #2ecc71; color: white; text-decoration: none; padding: 20px; border-radius: 25px; font-weight: 700; font-size: 20px; transition: 0.3s; box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3); }
-        .phone { margin-top: 25px; font-weight: 700; font-size: 22px; color: #1e293b; }
-        #loader { font-weight: 600; color: #1e293b; text-align: center; }
+        .instruction { color: #64748b; font-size: 15px; margin-bottom: 30px; line-height: 1.4; }
+        .btn-call { display: flex; align-items: center; justify-content: center; gap: 12px; background: #2ecc71; color: white; text-decoration: none; padding: 20px; border-radius: 25px; font-weight: 700; font-size: 20px; transition: 0.3s; box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3); text-transform: uppercase; }
+        .phone { margin-top: 25px; font-weight: 700; font-size: 24px; color: #1e293b; letter-spacing: 1px; }
+        #loader { font-weight: 600; color: #1e293b; text-align: center; font-size: 14px; }
     </style>
 </head>
 <body>
     <div id="loader">LÜTFEN BEKLEYİN...</div>
+
     <div class="card" id="main-ui">
         <div class="header">
             <div class="header-title">ARAÇ SAHİBİ BİLGİSİ</div>
@@ -33,30 +34,52 @@
             <div class="phone" id="phone-display"></div>
         </div>
     </div>
+
     <script>
         // BURAYA KENDİ GOOGLE SCRIPT URL'Nİ YAPIŞTIR (SONU /exec OLMALI)
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwmOPn2_74N8B127h7ko5ZXs0_ePY2zRUh54NPW2L2OpztNiZhN8Noj9lsf7S5dtx0MwQ/exec"; 
+        const SCRIPT_URL = "BURAYA_GOOGLE_WEB_APP_URL_YAPISTIR"; 
+
         const params = new URLSearchParams(window.location.search);
         const id = params.get('id');
+
         function render(data) {
             const u = data.find(x => x.id == id);
-            if(!u) { document.getElementById('loader').innerText = "ARAÇ BULUNAMADI!"; return; }
+            if(!u) {
+                document.getElementById('loader').innerText = "❌ ARAÇ BULUNAMADI!";
+                return;
+            }
+
             document.getElementById('loader').style.display = 'none';
             document.getElementById('main-ui').style.display = 'block';
             document.getElementById('plaka-box').innerText = u.plaka;
+
+            const statusContainer = document.getElementById('status-container');
+            const actionArea = document.getElementById('action-area');
+            const phoneDisplay = document.getElementById('phone-display');
+
             if(u.durum === "ACIK") {
-                document.getElementById('status-container').innerHTML = `<div class="status-badge">● İLETİŞİME AÇIK</div>`;
-                document.getElementById('action-area').innerHTML = `<a href="tel:${u.tel}" class="btn-call">📞 SÜRÜCÜYÜ ARA</a>`;
-                document.getElementById('phone-display').innerText = u.tel;
+                statusContainer.innerHTML = `<div class="status-badge">● İLETİŞİME AÇIK</div>`;
+                actionArea.innerHTML = `<a href="tel:${u.tel}" class="btn-call">📞 SÜRÜCÜYÜ ARA</a>`;
+                phoneDisplay.innerText = u.tel;
             } else {
-                document.getElementById('status-container').innerHTML = `<div class="status-badge" style="background:#ffebee; color:#c62828;">● ŞU AN MEŞGUL</div>`;
-                document.getElementById('action-area').innerHTML = `<div style="padding:20px; background:#f8fafc; border-radius:20px; color:#64748b; font-size:14px; border:1px dashed #cbd5e1;">Sürücü şu an müsait değil.</div>`;
+                statusContainer.innerHTML = `<div class="status-badge" style="background:#ffebee; color:#c62828; border-color:#ffcdd2;">● ŞU AN MEŞGUL</div>`;
+                actionArea.innerHTML = `<div style="padding:20px; background:#f8fafc; border-radius:20px; color:#64748b; font-size:14px; border:1px dashed #cbd5e1;">Sürücü şu anda müsait değil.</div>`;
+                phoneDisplay.innerText = "";
             }
         }
-        if(id) {
-            const s = document.createElement('script');
-            s.src = SCRIPT_URL + "?id=" + id + "&callback=render&t=" + new Date().getTime();
-            document.body.appendChild(s);
+
+        if(id && SCRIPT_URL !== "https://script.google.com/macros/s/AKfycbyLieRnI6Zd6qUXzG_B56CkvF4lFBvmtloogzuirSlNj4haXD7ZhUOPLt25MGqgYZkSIg/exec") {
+            const script = document.createElement('script');
+            // 't' parametresi önbelleği temizler, 'crossorigin' Chrome hatalarını engeller
+            script.src = SCRIPT_URL + "?id=" + id + "&callback=render&t=" + new Date().getTime();
+            script.setAttribute('crossorigin', 'anonymous');
+            
+            script.onerror = function() {
+                document.getElementById('loader').innerHTML = "⚠️ Bağlantı Hatası!<br><small>Lütfen Google Script ayarlarını (Herkes/Anyone) kontrol edin.</small>";
+            };
+            document.body.appendChild(script);
+        } else {
+            document.getElementById('loader').innerText = id ? "⚠️ SCRIPT_URL ayarlanmamış!" : "⚠️ GEÇERSİZ ARAÇ ID!";
         }
     </script>
 </body>
