@@ -3,55 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sürücü İletişim</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>Sürücü İletişim Bilgisi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f1f5f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; width: 340px; border-radius: 40px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; text-align: center; }
-        .top { background: #0f172a; padding: 40px 20px; color: white; }
-        .plaka { font-size: 38px; font-weight: 900; background: white; color: #0f172a; padding: 10px 25px; border-radius: 20px; display: inline-block; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2); }
-        .info { padding: 40px 30px; }
-        .btn-call { background: #4f46e5; color: white; text-decoration: none; display: block; padding: 20px; border-radius: 24px; font-weight: 700; font-size: 18px; box-shadow: 0 10px 15px -3px rgba(79,70,229,0.3); transition: 0.3s; }
-        .btn-call:hover { transform: translateY(-3px); }
-        .status { margin-bottom: 25px; font-weight: 700; color: #64748b; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        :root {
+            --primary: #6366f1;
+            --bg: #020617;
+            --card-bg: rgba(15, 23, 42, 0.8);
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; 
+            display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%), 
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+        }
+
+        /* Glassmorphism Card */
+        .card { 
+            background: var(--card-bg); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            width: 340px; border-radius: 40px; border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); text-align: center; overflow: hidden;
+        }
+
+        .header { background: rgba(30, 41, 59, 0.4); padding: 40px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .header-label { font-size: 11px; letter-spacing: 2px; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-bottom: 15px; }
+        
+        .plaka { 
+            font-size: 34px; font-weight: 900; background: #ffffff; color: #0f172a; 
+            padding: 8px 24px; border-radius: 16px; display: inline-block; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3); letter-spacing: 1px;
+        }
+
+        .content { padding: 40px 25px; }
+        
+        /* Durum Rozeti */
+        .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 50px; font-weight: 700; font-size: 13px; margin-bottom: 25px; letter-spacing: 0.5px; }
+        .status-open { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .status-closed { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px currentColor; }
+
+        .info-msg { color: #94a3b8; font-size: 13px; line-height: 1.6; margin-bottom: 30px; }
+
+        /* Arama Butonu */
+        .btn-call { 
+            display: flex; align-items: center; justify-content: center; gap: 12px; 
+            background: var(--primary); color: white; text-decoration: none; 
+            padding: 18px; border-radius: 20px; font-weight: 800; font-size: 18px; 
+            transition: 0.3s; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+        }
+        .btn-call:hover { transform: translateY(-3px); filter: brightness(1.1); box-shadow: 0 15px 25px -5px rgba(99, 102, 241, 0.5); }
+        
+        #loading-text { color: #6366f1; font-weight: 700; font-size: 14px; letter-spacing: 1px; }
     </style>
 </head>
 <body>
-    <div class="card" id="ui" style="display:none">
-        <div class="top">
-            <div class="plaka" id="p"></div>
+    <div id="loading-text">BİLGİLER DOĞRULANIYOR...</div>
+
+    <div class="card" id="main-ui" style="display:none">
+        <div class="header">
+            <div class="header-label">Araç Sürücü Bilgisi</div>
+            <div class="plaka" id="plaka-box">-- --- --</div>
         </div>
-        <div class="info">
-            <div class="status" id="s"></div>
-            <div id="act"></div>
+        <div class="content">
+            <div id="status-container"></div>
+            <p class="info-msg" id="info-msg">Acil durumlar veya hatalı park bildirimleri için sürücüye doğrudan ulaşabilirsiniz.</p>
+            
+            <div id="action-area">
+                </div>
+            
+            <div id="tel-display" style="margin-top:20px; color:#ffffff; font-weight:700; font-size:18px; letter-spacing:1px; opacity:0.8;"></div>
         </div>
     </div>
+
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKdN-oVECpoLUOr9YQ8mMv3BPuBRJ0oWbu9L9glX4vw6vhwA6pSw9WYdn5W3G7kU757g/exec";
-        const id = new URLSearchParams(window.location.search).get('id');
+        // GOOGLE WEB APP URL'NİZİ BURAYA YAPIŞTIRIN
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKdN-oVECpoLUOr9YQ8mMv3BPuBRJ0oWbu9L9glX4vw6vhwA6pSw9WYdn5W3G7kU757g/exec"; 
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+
         if(id) {
             const s = document.createElement('script');
             s.src = SCRIPT_URL + "?id=" + id + "&callback=render";
             document.body.appendChild(s);
+        } else {
+            document.getElementById('loading-text').innerText = "HATA: GEÇERSİZ ARAÇ ID";
         }
-        function render(d) {
-            const u = d.find(x => x.id == id);
-            if(!u) return;
-            document.getElementById('ui').style.display = 'block';
-            document.getElementById('p').innerText = u.plaka;
+
+        function render(data) {
+            const u = data.find(x => x.id == id);
+            if(!u) return document.getElementById('loading-text').innerText = "KAYIT BULUNAMADI";
+
+            document.getElementById('loading-text').style.display = 'none';
+            document.getElementById('main-ui').style.display = 'block';
+            document.getElementById('plaka-box').innerText = u.plaka;
+
+            const statusContainer = document.getElementById('status-container');
+            const actionArea = document.getElementById('action-area');
+            const telDisplay = document.getElementById('tel-display');
+
             if(u.durum === "ACIK") {
-                document.getElementById('s').innerText = "✅ Sürücü Müsait";
-                document.getElementById('act').innerHTML = `<a href="tel:${u.tel}" class="btn-call">Sürücüyü Ara</a>`;
+                statusContainer.innerHTML = `<div class="status-badge status-open"><div class="dot"></div> İLETİŞİME AÇIK</div>`;
+                actionArea.innerHTML = `<a href="tel:${u.tel}" class="btn-call">📞 SÜRÜCÜYÜ ARA</a>`;
+                telDisplay.innerText = u.tel;
             } else {
-                document.getElementById('s').innerText = "❌ Sürücü Meşgul";
-                document.getElementById('act').innerHTML = `<div style="color:#94a3b8">Lütfen daha sonra tekrar deneyiniz.</div>`;
+                statusContainer.innerHTML = `<div class="status-badge status-closed"><div class="dot"></div> ŞU AN MEŞGUL</div>`;
+                actionArea.innerHTML = `<div style="padding:20px; background:rgba(255,255,255,0.03); border-radius:18px; color:#94a3b8; font-size:14px; border:1px dashed rgba(255,255,255,0.1);">Sürücü şu anda müsait olmadığını belirtti. Lütfen daha sonra tekrar deneyiniz.</div>`;
+                telDisplay.innerText = "";
             }
         }
     </script>
 </body>
 </html>
-
-
-
-
-
