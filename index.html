@@ -3,79 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sürücü İletişim Bilgisi</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <title>Sürücü İletişim</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #2563eb; --dark: #0f172a; --bg: #f8fafc; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; color: var(--dark); }
-        
-        .card { background: white; width: 90%; max-width: 360px; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); overflow: hidden; border: 1px solid #e2e8f0; text-align: center; }
-        
-        .header { background: var(--dark); padding: 30px 20px; color: white; }
-        .header-label { font-size: 11px; letter-spacing: 1.5px; opacity: 0.7; font-weight: 600; text-transform: uppercase; margin-bottom: 12px; }
-        .plaka { font-size: 32px; font-weight: 800; background: white; color: var(--dark); padding: 6px 20px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 0 #cbd5e1; }
-
-        .content { padding: 40px 24px; }
-        .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 50px; font-weight: 600; font-size: 13px; margin-bottom: 24px; }
-        .status-open { background: #dcfce7; color: #15803d; }
-        .status-closed { background: #fee2e2; color: #b91c1c; }
-
-        .btn-call { display: flex; align-items: center; justify-content: center; gap: 10px; background: #16a34a; color: white; text-decoration: none; padding: 16px; border-radius: 16px; font-weight: 700; font-size: 18px; transition: 0.2s; }
-        .btn-call:hover { background: #15803d; transform: translateY(-2px); }
-        
-        .info-text { color: #64748b; font-size: 13px; line-height: 1.6; margin-top: 24px; }
-        #load-ui { font-weight: 600; color: var(--primary); }
+        body { font-family: 'Inter', sans-serif; background: #f1f5f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; width: 340px; border-radius: 40px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; text-align: center; }
+        .top { background: #0f172a; padding: 40px 20px; color: white; }
+        .plaka { font-size: 38px; font-weight: 900; background: white; color: #0f172a; padding: 10px 25px; border-radius: 20px; display: inline-block; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2); }
+        .info { padding: 40px 30px; }
+        .btn-call { background: #4f46e5; color: white; text-decoration: none; display: block; padding: 20px; border-radius: 24px; font-weight: 700; font-size: 18px; box-shadow: 0 10px 15px -3px rgba(79,70,229,0.3); transition: 0.3s; }
+        .btn-call:hover { transform: translateY(-3px); }
+        .status { margin-bottom: 25px; font-weight: 700; color: #64748b; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
     </style>
 </head>
 <body>
-    <div id="load-ui">Bilgiler doğrulanıyor...</div>
-
-    <div class="card" id="main-ui" style="display:none">
-        <div class="header">
-            <div class="header-label">Araç Sürücü Bilgisi</div>
-            <div class="plaka" id="plaka-box">-- --- --</div>
+    <div class="card" id="ui" style="display:none">
+        <div class="top">
+            <div class="plaka" id="p"></div>
         </div>
-        <div class="content">
-            <div id="status-container"></div>
-            <div id="action-area"></div>
-            <p class="info-text">Lütfen acil durumlar dışında sürücüyü meşgul etmeyiniz.</p>
+        <div class="info">
+            <div class="status" id="s"></div>
+            <div id="act"></div>
         </div>
     </div>
-
     <script>
-        // Google Script URL'nizi buraya yapıştırmayı unutmayın!
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwkF4EMHBG_BAp_9DsCsg6QNfDFDjFSpp-99oaPmsarzaYgUQmgYGkNGksY5c1ckHFlWg/exec"; 
-        const params = new URLSearchParams(window.location.search);
-        const id = params.get('id');
-
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzS9G0RJ73Z_k9RTRfHXaTK9Zt8TcQye8UDWLX5Ms2j8--y6duIirVYdHXMPn4tiqkR6A/exec";
+        const id = new URLSearchParams(window.location.search).get('id');
         if(id) {
             const s = document.createElement('script');
             s.src = SCRIPT_URL + "?id=" + id + "&callback=render";
             document.body.appendChild(s);
-        } else {
-            document.getElementById('load-ui').innerText = "Hata: Geçersiz Bağlantı";
         }
-
-        function render(data) {
-            const u = data.find(x => x.id == id);
-            if(!u) return document.getElementById('load-ui').innerText = "Kayıt Bulunamadı";
-
-            document.getElementById('load-ui').style.display = 'none';
-            document.getElementById('main-ui').style.display = 'block';
-            document.getElementById('plaka-box').innerText = u.plaka;
-
-            const statusContainer = document.getElementById('status-container');
-            const actionArea = document.getElementById('action-area');
-
+        function render(d) {
+            const u = d.find(x => x.id == id);
+            if(!u) return;
+            document.getElementById('ui').style.display = 'block';
+            document.getElementById('p').innerText = u.plaka;
             if(u.durum === "ACIK") {
-                statusContainer.innerHTML = `<div class="status-badge status-open">● İLETİŞİME AÇIK</div>`;
-                actionArea.innerHTML = `<a href="tel:${u.tel}" class="btn-call">Sürücüyü Ara</a><div style="margin-top:15px; font-weight:700; color:#1e293b; font-size:18px;">${u.tel}</div>`;
+                document.getElementById('s').innerText = "✅ Sürücü Müsait";
+                document.getElementById('act').innerHTML = `<a href="tel:${u.tel}" class="btn-call">Sürücüyü Ara</a>`;
             } else {
-                statusContainer.innerHTML = `<div class="status-badge status-closed">● ŞU AN MEŞGUL</div>`;
-                actionArea.innerHTML = `<div style="padding:20px; background:#f1f5f9; border-radius:12px; color:#475569; font-size:14px; border:1px solid #e2e8f0;">Sürücü şu anda müsait olmadığını bildirdi.</div>`;
+                document.getElementById('s').innerText = "❌ Sürücü Meşgul";
+                document.getElementById('act').innerHTML = `<div style="color:#94a3b8">Lütfen daha sonra tekrar deneyiniz.</div>`;
             }
         }
     </script>
 </body>
 </html>
-
