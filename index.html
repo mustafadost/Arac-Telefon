@@ -1,36 +1,94 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<title>Araç Bilgisi</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-body{font-family:Arial;background:#111;color:#fff;text-align:center;padding:40px}
-.card{background:#222;padding:25px;border-radius:15px;max-width:400px;margin:auto}
-.tel{font-size:22px;margin-top:15px}
-.kapali{color:#f44336}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Araç İletişim Bilgisi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background: #f3f4f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 320px; text-align: center; }
+        .plaka { font-size: 2.2rem; font-weight: 800; color: #1f2937; margin-bottom: 10px; border-bottom: 3px solid #4f46e5; display: inline-block; }
+        .durum { padding: 8px 20px; border-radius: 50px; font-weight: bold; margin: 15px 0; display: inline-block; font-size: 14px; }
+        .musait { background: #dcfce7; color: #166534; }
+        .mesgul { background: #fee2e2; color: #991b1b; }
+        .tel-btn { display: block; background: #4f46e5; color: white; text-decoration: none; padding: 15px; border-radius: 15px; font-weight: bold; font-size: 18px; transition: 0.3s; }
+        .tel-btn:hover { background: #4338ca; transform: scale(1.02); }
+        .mesaj { color: #6b7280; font-size: 13px; margin-top: 20px; line-height: 1.5; }
+        #loader { font-size: 14px; color: #4f46e5; font-weight: bold; }
+    </style>
 </head>
 <body>
 
-<div class="card" id="icerik">Yükleniyor...</div>
+<div class="card" id="main-card">
+    <div id="loader">🚖 Araç Bilgisi Sorgulanıyor...</div>
+    <div id="content" class="hidden" style="display:none;">
+        <div class="plaka" id="dis-plaka">-- --- --</div>
+        <div id="dis-durum" class="durum">YÜKLENİYOR</div>
+        
+        <div id="iletisim-alani">
+            <a href="#" id="tel-link" class="tel-btn">📞 Sürücüyü Ara</a>
+            <p class="mesaj">Lütfen aracın başında değilseniz sürücüyü meşgul etmeyiniz.</p>
+        </div>
+        
+        <div id="mesgul-alani" style="display:none;">
+            <p class="mesaj" style="color:#ef4444; font-weight:bold;">Sürücü şu anda meşgul olduğunu bildirdi. Lütfen daha sonra tekrar deneyiniz.</p>
+        </div>
+    </div>
+</div>
 
 <script>
-const id=new URLSearchParams(window.location.search).get("id");
+    // 1. Google Web Uygulaması URL'nizi Buraya Yapıştırın!
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyt50JoIVda4N91cVoKQj14Zuwk0zrMbWK_FR_QXc-BbjjWiH-_3O3MQNNwceVZDDwTOw/exec"; 
 
-fetch("https://script.google.com/macros/s/AKfycbwvbGEjJTbxatLhm0q1UFqUXoBN19HsgONnDnlENDjpkUHXiRjSE61XnxERxFcxHDFH/exec"+id)
-.then(r=>r.json())
-.then(d=>{
- if(!d){icerik.innerHTML="Araç bulunamadı";return;}
- if(d.tel_gorunur==="ACIK"){
-  icerik.innerHTML=`<h2>${d.plaka}</h2><div class="tel">${d.tel}</div>`;
- }else{
-  icerik.innerHTML=`<h2>${d.plaka}</h2><div class="kapali">Telefon gizli</div>`;
- }
-});
+    function veriyiCek() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get('id');
+
+        if (!id) {
+            document.getElementById('loader').innerText = "❌ Hata: Araç ID bulunamadı.";
+            return;
+        }
+
+        // JSONP isteği oluşturma (CORS engelini aşmak için)
+        const script = document.createElement('script');
+        script.src = `${SCRIPT_URL}?id=${id}&callback=veriyiIsle`;
+        document.body.appendChild(script);
+    }
+
+    function veriyiIsle(veriler) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get('id');
+        const arac = veriler.find(a => a.id == id);
+
+        document.getElementById('loader').style.display = 'none';
+        const content = document.getElementById('content');
+        content.style.display = 'block';
+
+        if (arac) {
+            document.getElementById('dis-plaka').innerText = arac.plaka;
+            const durumEl = document.getElementById('dis-durum');
+            
+            if (arac.durum === "ACIK") {
+                durumEl.innerText = "✅ ŞU AN MÜSAİT";
+                durumEl.className = "durum musait";
+                document.getElementById('iletisim-alani').style.display = 'block';
+                document.getElementById('mesgul-alani').style.display = 'none';
+                document.getElementById('tel-link').href = "tel:" + arac.tel;
+            } else {
+                durumEl.innerText = "❌ ŞU AN MEŞGUL";
+                durumEl.className = "durum mesgul";
+                document.getElementById('iletisim-alani').style.display = 'none';
+                document.getElementById('mesgul-alani').style.display = 'block';
+            }
+        } else {
+            document.getElementById('loader').innerText = "❌ Araç bulunamadı.";
+            document.getElementById('loader').style.display = 'block';
+        }
+    }
+
+    window.onload = veriyiCek;
 </script>
 
 </body>
 </html>
-
-
