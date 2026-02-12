@@ -1,51 +1,88 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sürücü İletişim</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+    <title>Araç Sahibi Bilgisi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Poppins', sans-serif; background: #F3F4F6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 300px; text-align: center; }
-        .plaka { font-size: 2rem; color: #1F2937; border-bottom: 3px solid #4F46E5; display: inline-block; margin-bottom: 20px; }
-        .btn { display: block; background: #4F46E5; color: white; text-decoration: none; padding: 15px; border-radius: 12px; font-weight: bold; }
-        .mesgul { color: #EF4444; font-weight: bold; padding: 15px; background: #FEE2E2; border-radius: 12px; }
+        body { font-family: 'Poppins', sans-serif; background: #0F172A; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        
+        /* Arka Plan Dekorasyonu */
+        .bg-circle { position: absolute; width: 300px; height: 300px; background: linear-gradient(135deg, #4F46E5, #06B6D4); border-radius: 50%; filter: blur(80px); opacity: 0.4; z-index: -1; }
+        .circle-1 { top: -100px; right: -50px; }
+        .circle-2 { bottom: -100px; left: -50px; }
+
+        .card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); width: 340px; border-radius: 35px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); text-align: center; }
+        
+        .header { background: #1E293B; padding: 30px 20px; color: white; }
+        .header-label { font-size: 12px; letter-spacing: 2px; opacity: 0.7; font-weight: 600; text-transform: uppercase; }
+        .plaka { font-size: 34px; font-weight: 800; letter-spacing: 1px; margin-top: 10px; background: white; color: #1E2937; padding: 5px 20px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 0 #CBD5E1; }
+
+        .content { padding: 40px 25px; }
+        .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 50px; font-weight: 600; font-size: 14px; margin-bottom: 20px; }
+        .status-open { background: #DCFCE7; color: #15803D; }
+        .status-closed { background: #FEE2E2; color: #B91C1C; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+
+        .info-text { color: #64748B; font-size: 14px; margin-bottom: 30px; line-height: 1.6; }
+        
+        .btn-call { display: flex; align-items: center; justify-content: center; gap: 12px; background: #10B981; color: white; text-decoration: none; padding: 18px; border-radius: 20px; font-weight: 700; font-size: 18px; transition: 0.3s; box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.4); }
+        .btn-call:hover { transform: translateY(-3px); box-shadow: 0 15px 25px -5px rgba(16, 185, 129, 0.5); }
+        
+        #load-ui { color: white; font-weight: 600; }
     </style>
 </head>
 <body>
-<div class="card" id="box">
-    <div id="load">Sorgulanıyor...</div>
-    <div id="main" style="display:none">
-        <div class="plaka" id="p"></div>
-        <div id="ok"><a href="" id="lnk" class="btn">📞 SÜRÜCÜYÜ ARA</a></div>
-        <div id="no" class="mesgul" style="display:none">❌ SÜRÜCÜ ŞU AN MEŞGUL</div>
-    </div>
-</div>
-<script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby7yMPue_c-F5sUCMVeakwUiWJTJHVMXuk16raeKusmopvHCyJJkmlJZEG1MpfANLqJVw/exec"; // /exec ile biten link
-    const id = new URLSearchParams(window.location.search).get('id');
-    
-    if(id) {
-        const s = document.createElement('script');
-        s.src = SCRIPT_URL + "?id=" + id + "&callback=view";
-        document.body.appendChild(s);
-    } else { document.getElementById('load').innerText = "ID Eksik!"; }
+    <div class="bg-circle circle-1"></div>
+    <div class="bg-circle circle-2"></div>
 
-    function view(data) {
-        const u = data.find(x => x.id == id);
-        document.getElementById('load').style.display = 'none';
-        document.getElementById('main').style.display = 'block';
-        if(u) {
-            document.getElementById('p').innerText = u.plaka;
+    <div id="load-ui">Bilgiler doğrulanıyor...</div>
+
+    <div class="card" id="main-ui" style="display:none">
+        <div class="header">
+            <div class="header-label">Araç Sahibi Bilgisi</div>
+            <div class="plaka" id="plaka-box">-- --- --</div>
+        </div>
+        <div class="content">
+            <div id="status-container"></div>
+            <p class="info-text">Acil durumlar veya hatalı park bildirimleri için sürücüye ulaşabilirsiniz.</p>
+            
+            <div id="action-area">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXiF0NJH_PDltfLDfnjTOB65_rEM1grhP2wW7apdmBBgUrAp6EVbeEH3wPrmDyxkBB3Q/exec"; 
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+
+        if(id) {
+            const s = document.createElement('script');
+            s.src = SCRIPT_URL + "?id=" + id + "&callback=render";
+            document.body.appendChild(s);
+        }
+
+        function render(data) {
+            const u = data.find(x => x.id == id);
+            if(!u) return document.getElementById('load-ui').innerText = "Araç Bulunamadı!";
+
+            document.getElementById('load-ui').style.display = 'none';
+            document.getElementById('main-ui').style.display = 'block';
+            document.getElementById('plaka-box').innerText = u.plaka;
+
+            const statusContainer = document.getElementById('status-container');
+            const actionArea = document.getElementById('action-area');
+
             if(u.durum === "ACIK") {
-                document.getElementById('lnk').href = "tel:" + u.tel;
+                statusContainer.innerHTML = `<div class="status-badge status-open"><div class="status-dot"></div> İLETİŞİME AÇIK</div>`;
+                actionArea.innerHTML = `<a href="tel:${u.tel}" class="btn-call"><span>📞</span> SÜRÜCÜYÜ ARA</a><div style="margin-top:20px; color:#94A3B8; font-weight:600; letter-spacing:1px;">${u.tel}</div>`;
             } else {
-                document.getElementById('ok').style.display = 'none';
-                document.getElementById('no').style.display = 'block';
+                statusContainer.innerHTML = `<div class="status-badge status-closed"><div class="status-dot"></div> ŞU AN MEŞGUL</div>`;
+                actionArea.innerHTML = `<div style="padding:20px; background:#F8FAFC; border-radius:15px; color:#64748B; font-size:14px; border:1px dashed #CBD5E1">Sürücü şu anda müsait olmadığını belirtti. Lütfen daha sonra tekrar deneyiniz.</div>`;
             }
-        } else { document.getElementById('load').innerText = "Araç bulunamadı!"; }
-    }
-</script>
+        }
+    </script>
 </body>
 </html>
