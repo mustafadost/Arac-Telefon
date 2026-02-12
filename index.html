@@ -9,7 +9,6 @@
         :root {
             --primary-green: #2ecc71;
             --bg-dark: #0f172a;
-            --text-gray: #7f8c8d;
         }
 
         body { 
@@ -58,14 +57,14 @@
             transition: 0.3s; box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3);
             text-transform: uppercase;
         }
-        .btn-call:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(46, 204, 113, 0.4); }
+        .btn-call:hover { transform: translateY(-3px); }
 
         .phone-number { 
             margin-top: 25px; font-weight: 700; font-size: 22px; 
             color: #1e293b; letter-spacing: 1px;
         }
 
-        #loader { font-weight: 600; color: #1e293b; }
+        #loader { font-weight: 600; color: #1e293b; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -81,40 +80,30 @@
             
             <div class="instruction-text">Acil durumlar için sürücüye ulaşabilirsiniz:</div>
             
-            <div id="action-area">
-                </div>
+            <div id="action-area"></div>
             
             <div class="phone-number" id="phone-display"></div>
         </div>
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwBqpOKVkiR5aCCcP9N6Y7hBowLgtQSNf1lNxJhaGKcXhayVi1bmSIqHXG5hX5zMR2C/exec"; 
+        /* ÖNEMLİ: BURAYI GOOGLE SCRIPT'TEN ALDIĞIN /exec İLE BİTEN LİNKLE DEĞİŞTİR */
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby6Vpgc7uilr7V9RB-K8um2jJtDhCFFpm3U4B-i3SqZ_gOr2xf_WjrO95uJjKLJb_5vQA/exec"; 
+
         const params = new URLSearchParams(window.location.search);
         const id = params.get('id');
 
         if(id) {
-            const s = document.createElement('script');
-            s.src = SCRIPT_URL + "?id=" + id + "&callback=render";
-            document.body.appendChild(s);
+            const script = document.createElement('script');
+            // JSONP callback mekanizması: Lütfen bekleyin yazısını bu tetikler
+            script.src = SCRIPT_URL + "?id=" + id + "&callback=render";
+            script.onerror = function() {
+                document.getElementById('loader').innerText = "BAĞLANTI HATASI! (URL KONTROL EDİN)";
+            };
+            document.body.appendChild(script);
+        } else {
+            document.getElementById('loader').innerText = "GEÇERSİZ ARAÇ ID!";
         }
 
         function render(data) {
-            const u = data.find(x => x.id == id);
-            if(!u) return document.getElementById('loader').innerText = "ARAÇ BULUNAMADI";
-
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('main-ui').style.display = 'block';
-            document.getElementById('plaka-box').innerText = u.plaka;
-
-            const statusContainer = document.getElementById('status-container');
-            const actionArea = document.getElementById('action-area');
-            const phoneDisplay = document.getElementById('phone-display');
-
-            if(u.durum === "ACIK") {
-                statusContainer.innerHTML = `<div class="status-badge">● İLETİŞİME AÇIK</div>`;
-                actionArea.innerHTML = `<a href="tel:${u.tel}" class="btn-call">📞 SÜRÜCÜYÜ ARA</a>`;
-                phoneDisplay.innerText = u.tel;
-            } else
-
-
+            const u = data.find(x => x.
