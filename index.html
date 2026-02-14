@@ -1,95 +1,85 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Akıllı Araç Kartı</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+<title>Araç Bilgi</title>
 <style>
-body{
-  font-family:'Inter',sans-serif;
-  background:#f1f5f9;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:100vh;
-  margin:0;
-  padding:15px;
-}
-.card{
-  background:white;
-  width:100%;
-  max-width:360px;
-  border-radius:30px;
-  box-shadow:0 15px 35px rgba(0,0,0,0.12);
-  overflow:hidden;
-  text-align:center;
-}
-.header{
-  background:#1e293b;
-  padding:30px;
-  color:white;
-}
-.plaka{
-  font-size:28px;
-  font-weight:900;
-  background:white;
-  color:#1e293b;
-  padding:10px 20px;
-  border-radius:12px;
-  display:inline-block;
-}
-.content{
-  padding:25px;
-}
-.btn{
-  display:block;
-  padding:15px;
-  border-radius:15px;
-  text-decoration:none;
-  font-weight:700;
-  margin-bottom:12px;
-}
-.call{ background:#10b981; color:white; }
-.whatsapp{ background:#25D366; color:white; }
-.dark{ background:#1e293b; color:white; }
-input{
-  width:100%;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid #ddd;
-  margin-bottom:10px;
-}
-button{
-  width:100%;
-  padding:14px;
-  border-radius:12px;
-  border:none;
-  background:#1e293b;
-  color:white;
-  font-weight:700;
-}
-#loader{
-  font-weight:700;
-  color:#1e293b;
-}
+body{font-family:Arial;text-align:center;padding:40px}
+button{padding:10px 20px;margin-top:15px}
 </style>
 </head>
 <body>
 
-<div id="loader">YÜKLENİYOR...</div>
+<div id="icerik">Yükleniyor...</div>
 
 <script>
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9BmiiV9qvJK5MNEXAA9YpMzmmDQzRB7wDYbLxu5-K4489NLuNy37Qva_uW4o8cEFhNA/exec";
+const API = "https://script.google.com/macros/s/AKfycbzX80eX9rfU9Kkrrg4qpFyAlnYgbQJ7uoLFDSk6_TmS1lkbqsVuHSmzF6IxdxoNe3XsXg/exec";
 
 const params = new URLSearchParams(window.location.search);
-const qr = params.get("id");
+const id = params.get("id");
 
-if(!qr){
-  document.getElementById("loader").innerHTML="QR KOD EKSİK";
+if(!id){
+  document.getElementById("icerik").innerHTML = "QR eksik";
+}else{
+
+fetch(API + "?id=" + id)
+.then(res => res.json())
+.then(data => {
+
+  if(data.status == "sahiplen"){
+    document.getElementById("icerik").innerHTML = `
+      <h2>Etiketi Sahiplen</h2>
+      <input id="ad" placeholder="Adınız"><br><br>
+      <input id="tel" placeholder="Telefon"><br><br>
+      <button onclick="kaydet()">Kaydet</button>
+    `;
+  }
+
+  else if(data.status == "profil"){
+    document.getElementById("icerik").innerHTML = `
+      <h2>${data.ad}</h2>
+      <a href="tel:${data.telefon}">📞 Ara</a><br><br>
+      <a href="https://wa.me/90${data.telefon.substring(1)}">WhatsApp</a>
+      <p>Okutma: ${data.okutma}</p>
+    `;
+  }
+
+  else if(data.status == "pasif"){
+    document.getElementById("icerik").innerHTML = "Bu kart pasif";
+  }
+
+  else{
+    document.getElementById("icerik").innerHTML = "QR sistemde yok";
+  }
+
+});
+
 }
 
-fetch(SCRIPT_URL + "?id=" + qr)
-.then(re
+function kaydet(){
 
+const ad = document.getElementById("ad").value;
+const tel = document.getElementById("tel").value;
+
+fetch(API,{
+  method:"POST",
+  body:new URLSearchParams({
+    id:id,
+    ad:ad,
+    telefon:tel
+  })
+})
+.then(res=>res.json())
+.then(data=>{
+  if(data.status=="tamam"){
+    location.reload();
+  }
+});
+
+}
+
+</script>
+
+</body>
+</html>
