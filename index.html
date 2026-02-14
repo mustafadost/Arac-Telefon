@@ -7,9 +7,9 @@
 <title>Sürücü İletişim</title>
 <style>
 body { font-family: sans-serif; background: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
-.card { background: white; width: 100%; max-width: 360px; border-radius: 35px; padding: 30px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; }
-.plaka { font-size: 30px; font-weight: 900; background: #1e293b; color: white; padding: 10px; border-radius: 12px; margin-bottom: 25px; }
-.btn { display: flex; align-items: center; justify-content: center; background: #10b981; color: white; text-decoration: none; padding: 18px; border-radius: 20px; font-weight: 700; margin-bottom: 15px; }
+.card { background: white; width: 100%; max-width: 360px; border-radius: 30px; padding: 30px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; }
+.plaka { font-size: 28px; font-weight: 900; background: #1e293b; color: white; padding: 10px; border-radius: 12px; margin-bottom: 25px; }
+.btn { display: block; padding: 18px; background: #10b981; color: white; text-decoration: none; border-radius: 15px; font-weight: 700; margin-bottom: 10px; }
 .reg { background: #3b82f6; }
 </style>
 </head>
@@ -19,28 +19,12 @@ body { font-family: sans-serif; background: #f1f5f9; display: flex; justify-cont
 <div class="plaka" id="P"></div>
 <div id="A"></div>
 </div>
+
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzV6kXcug9MdT7IwvxbYJbyNLTPy9X9LLsj0npMCI3Hl8Xc2XOF0GPirGb-puJYCAwVGQ/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyziU8p9aVyZfTwohrRk6Yr8JXerk2Ws8ZgPjgq701vRRzSju1H7LHeD_PvnU2A8uH9Qg/exec";
 const id = new URLSearchParams(window.location.search).get('id');
-function render(data) {
-const u = data.find(x => x.id == id);
-document.getElementById('L').style.display = 'none';
-document.getElementById('M').style.display = 'block';
-const area = document.getElementById('A');
-const plaka = document.getElementById('P');
-if (!u || !u.plaka) {
-plaka.innerText = "YENİ";
-area.innerHTML = "<p>Bu etiket tanımlanmamış.</p><a href='" + SCRIPT_URL + "?p=kayit&id=" + id + "' class='btn reg'>Hemen Kayıt Et</a>";
-} else {
-plaka.innerText = u.plaka;
-area.innerHTML = "<a href='tel:" + u.tel + "' class='btn'>Sürücüyü Ara</a><a href='" + u.tel.replace(/\D/g,'') + "' class='btn' style='background:#25D366'>WhatsApp</a>";
-}
-}
-if(id) {
-const s = document.createElement('script');
-s.src = SCRIPT_URL + "?id=" + id + "&callback=render&v=" + Date.now();
-document.body.appendChild(s);
-}
+
 </script>
+
 </body>
 </html>
