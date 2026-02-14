@@ -1,71 +1,46 @@
 <!DOCTYPE html>
+
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sürücü İletişim</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; background: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
-        .card { background: white; width: 100%; max-width: 360px; border-radius: 35px; box-shadow: 0 15px 35px rgba(0,0,0,0.12); overflow: hidden; text-align: center; display: none; }
-        .header { background: #1e293b; padding: 35px 20px; color: white; }
-        .plaka { font-size: 30px; font-weight: 900; background: white; color: #1e293b; padding: 10px 25px; border-radius: 12px; display: inline-block; }
-        .btn-call { display: flex; align-items: center; justify-content: center; gap: 10px; background: #10b981; color: white; text-decoration: none; padding: 18px; border-radius: 20px; font-weight: 700; margin-bottom: 20px; }
-        .btn-reg { background: #3b82f6; color: white; padding: 18px; border-radius: 18px; text-decoration: none; display: block; font-weight: 700; margin-top: 15px; }
-        .msg-btn { background: #fff; color: #1e293b; padding: 15px; border-radius: 15px; text-decoration: none; font-size: 14px; border: 1px solid #e2e8f0; font-weight: 600; display: flex; align-items: center; gap: 10px; margin-top: 10px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sürücü İletişim</title>
+<style>
+body { font-family: sans-serif; background: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
+.card { background: white; width: 100%; max-width: 360px; border-radius: 35px; padding: 30px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; }
+.plaka { font-size: 30px; font-weight: 900; background: #1e293b; color: white; padding: 10px; border-radius: 12px; margin-bottom: 25px; }
+.btn { display: flex; align-items: center; justify-content: center; background: #10b981; color: white; text-decoration: none; padding: 18px; border-radius: 20px; font-weight: 700; margin-bottom: 15px; }
+.reg { background: #3b82f6; }
+</style>
 </head>
 <body>
-    <div id="loader">KONTROL EDİLİYOR...</div>
-    <div class="card" id="main-ui">
-        <div class="header">
-            <div id="subtitle" style="font-size:10px; letter-spacing:2px; color:#94a3b8; margin-bottom:12px; font-weight:bold;">SÜRÜCÜ PANELİ</div>
-            <div class="plaka" id="plaka-box">YENİ</div>
-        </div>
-        <div class="content" style="padding: 25px;" id="action-area"></div>
-    </div>
-
-    <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxD3SnrdLiYhCWwj6cL6AqgBL1VkYgW6Y7krl1VULxakY-OUZUXu_KU4NdVBVuMY73SYw/exec"; 
-        const params = new URLSearchParams(window.location.search);
-        const id = params.get('id');
-
-        function render(data) {
-            const u = data.find(x => x.id == id);
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('main-ui').style.display = 'block';
-
-            if (!u || !u.plaka || u.plaka.trim() === "") {
-                document.getElementById('plaka-box').innerText = "YENİ";
-                document.getElementById('action-area').innerHTML = `
-                    <p style="color:#64748b; font-size:14px; margin-bottom:20px;">Bu etiket henüz tanımlanmamış.</p>
-                    <a href="${SCRIPT_URL}?p=kayit&id=${id}" class="btn-reg">Hemen Kayıt Et</a>`;
-                return;
-            }
-
-            document.getElementById('plaka-box').innerText = u.plaka;
-            let rawNum = u.tel.toString().replace(/\D/g, '');
-            let cleanTel = rawNum.startsWith('90') ? rawNum : (rawNum.startsWith('0') ? '90' + rawNum.substring(1) : '90' + rawNum);
-
-            if(u.durum === "ACIK") {
-                document.getElementById('action-area').innerHTML = `
-                    <a href="tel:+${cleanTel}" class="btn-call">📞 SÜRÜCÜYÜ ARA</a>
-                    <div style="text-align:left;">
-                        <p style="font-size:11px; color:#64748b; font-weight:800; margin: 0 0 10px 5px;">HIZLI MESAJ:</p>
-                        <a href="https://api.whatsapp.com/send?phone=${cleanTel}&text=Merhaba, caminiz acik." class="msg-btn">🪟 Cam Açık</a>
-                        <a href="https://api.whatsapp.com/send?phone=${cleanTel}&text=Merhaba, hatali park." class="msg-btn">🅿️ Hatalı Park</a>
-                        <a href="https://api.whatsapp.com/send?phone=${cleanTel}&text=ACIL DURUM!" class="msg-btn" style="color:#b91c1c; border-color:#fecaca;">⚠️ ACİL DURUM!</a>
-                    </div>`;
-            } else {
-                document.getElementById('action-area').innerHTML = `<div style="padding:20px; background:#f8fafc; border-radius:20px; color:#64748b;">Sürücü meşgul.</div>`;
-            }
-        }
-
-        if(id) {
-            const script = document.createElement('script');
-            script.src = SCRIPT_URL + "?id=" + id + "&callback=render&v=" + Date.now();
-            document.body.appendChild(script);
-        }
-    </script>
+<div id="L">Yükleniyor...</div>
+<div class="card" id="M">
+<div class="plaka" id="P"></div>
+<div id="A"></div>
+</div>
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzV6kXcug9MdT7IwvxbYJbyNLTPy9X9LLsj0npMCI3Hl8Xc2XOF0GPirGb-puJYCAwVGQ/exec";
+const id = new URLSearchParams(window.location.search).get('id');
+function render(data) {
+const u = data.find(x => x.id == id);
+document.getElementById('L').style.display = 'none';
+document.getElementById('M').style.display = 'block';
+const area = document.getElementById('A');
+const plaka = document.getElementById('P');
+if (!u || !u.plaka) {
+plaka.innerText = "YENİ";
+area.innerHTML = "<p>Bu etiket tanımlanmamış.</p><a href='" + SCRIPT_URL + "?p=kayit&id=" + id + "' class='btn reg'>Hemen Kayıt Et</a>";
+} else {
+plaka.innerText = u.plaka;
+area.innerHTML = "<a href='tel:" + u.tel + "' class='btn'>Sürücüyü Ara</a><a href='" + u.tel.replace(/\D/g,'') + "' class='btn' style='background:#25D366'>WhatsApp</a>";
+}
+}
+if(id) {
+const s = document.createElement('script');
+s.src = SCRIPT_URL + "?id=" + id + "&callback=render&v=" + Date.now();
+document.body.appendChild(s);
+}
+</script>
 </body>
 </html>
