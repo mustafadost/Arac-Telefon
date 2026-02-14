@@ -3,84 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Araç Sahibi Bilgisi</title>
+    <title>Araç İletişim Paneli</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
         .card { background: white; width: 100%; max-width: 380px; border-radius: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; text-align: center; display: none; }
         .header { background: linear-gradient(180deg, #1e293b, #0f172a); padding: 40px 20px; color: white; }
-        .header-title { font-size: 11px; letter-spacing: 2px; color: #94a3b8; text-transform: uppercase; margin-bottom: 15px; font-weight: 600; }
         .plaka { font-size: 32px; font-weight: 900; background: white; color: #1e293b; padding: 8px 25px; border-radius: 15px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .content { padding: 30px 25px; }
-        .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; border-radius: 50px; font-weight: 700; font-size: 13px; margin-bottom: 25px; background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
-        .btn-call { display: flex; align-items: center; justify-content: center; gap: 10px; background: #2ecc71; color: white; text-decoration: none; padding: 18px; border-radius: 20px; font-weight: 700; font-size: 18px; transition: 0.3s; box-shadow: 0 8px 15px rgba(46, 204, 113, 0.3); margin-bottom: 25px; }
-        .msg-btn { background: #fff; color: #1e293b; padding: 16px; border-radius: 18px; text-decoration: none; font-size: 14px; border: 1px solid #e2e8f0; font-weight: 600; display: flex; align-items: center; gap: 10px; margin-top: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.2s; }
-        .msg-btn:active { transform: scale(0.97); background: #f8fafc; }
-        #loader { font-weight: 600; color: #1e293b; letter-spacing: 1px; }
+        .btn-call { display: flex; align-items: center; justify-content: center; gap: 10px; background: #2ecc71; color: white; text-decoration: none; padding: 18px; border-radius: 20px; font-weight: 700; font-size: 18px; margin-bottom: 20px; }
+        .msg-btn { background: #fff; color: #1e293b; padding: 15px; border-radius: 18px; text-decoration: none; font-size: 14px; border: 1px solid #e2e8f0; font-weight: 600; display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+        #loader { font-weight: 600; color: #1e293b; }
     </style>
 </head>
 <body>
-    <div id="loader">LÜTFEN BEKLEYİN...</div>
+    <div id="loader">LÜTFEN BEKLEYİNİZ...</div>
 
     <div class="card" id="main-ui">
         <div class="header">
-            <div class="header-title">ARAÇ SAHİBİ İLETİŞİM PANELİ</div>
+            <div style="font-size:11px; letter-spacing:2px; color:#94a3b8; margin-bottom:10px;">ARAÇ SAHİBİ PANELİ</div>
             <div class="plaka" id="plaka-box"></div>
         </div>
-        <div class="content">
-            <div id="status-container"></div>
-            <div id="action-area"></div>
-        </div>
+        <div class="content" id="action-area"></div>
     </div>
 
     <script>
-      // index.html içindeki mevcut script bloğunu bununla değiştirin
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzeZTUo0VqZbcECOwqF_HECU4S13EiUp7N210zbvVUgmXAJ1uSuInCkStOMpIeK4y9Vdg/exec"; 
-const params = new URLSearchParams(window.location.search);
-const id = params.get('id');
+        // --- AYAR: Apps Script URL'nizi Buraya Yapıştırın ---
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzH3Y8P3LUWNnmsvN6N48rohalAw7qIBOFUtIZ9xByNjXYSLNcdXQiHLwxMeJSSrRa_bw/exec"; 
+        
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
 
-function render(data) {
-    console.log("Veri geldi:", data); // Test için
-    const u = data.find(x => x.id == id);
-    if(!u) {
-        document.getElementById('loader').innerText = "❌ ARAÇ BULUNAMADI!";
-        return;
-    }
+        function render(data) {
+            const u = data.find(x => x.id == id);
+            if(!u) {
+                document.getElementById('loader').innerText = "❌ ARAÇ BULUNAMADI!";
+                return;
+            }
 
-    document.getElementById('loader').style.display = 'none';
-    document.getElementById('main-ui').style.display = 'block';
-    document.getElementById('plaka-box').innerText = u.plaka;
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('main-ui').style.display = 'block';
+            document.getElementById('plaka-box').innerText = u.plaka;
 
-    const statusContainer = document.getElementById('status-container');
-    const actionArea = document.getElementById('action-area');
+            const area = document.getElementById('action-area');
+            const cleanTel = u.tel.toString().replace(/\D/g, '');
 
-    if(u.durum === "ACIK") {
-        statusContainer.innerHTML = `<div class="status-badge">● SÜRÜCÜ MÜSAİT</div>`;
-        const cleanTel = u.tel.toString().replace(/\D/g, ''); 
-        const finalTel = cleanTel.startsWith('90') ? cleanTel : '90' + cleanTel.replace(/^0+/, '');
+            if(u.durum === "ACIK") {
+                area.innerHTML = `
+                    <a href="tel:${cleanTel}" class="btn-call">📞 SÜRÜCÜYÜ ARA</a>
+                    <div style="text-align:left;">
+                        <p style="font-size:12px; color:#64748b; font-weight:800; margin-bottom:10px;">HIZLI MESAJ GÖNDER:</p>
+                        <a href="https://api.whatsapp.com/send?phone=${cleanTel}&text=Merhaba, caminiz acik kalmis." class="msg-btn">🪟 Cam Açık Kalmış</a>
+                        <a href="https://api.whatsapp.com/send?phone=${cleanTel}&text=Merhaba, hatali park etmissiniz." class="msg-btn">🅿️ Hatalı Park</a>
+                        <a href="https://api.whatsapp.com/send?phone=${cleanTel}&text=ACIL DURUM VAR!" class="msg-btn" style="color:#991b1b; border-color:#fecaca;">⚠️ Acil Durum Var!</a>
+                    </div>`;
+            } else {
+                area.innerHTML = `<div style="padding:20px; background:#f8fafc; border-radius:20px; color:#64748b;">Sürücü şu an meşgul.</div>`;
+            }
+        }
 
-        actionArea.innerHTML = `
-            <a href="tel:${finalTel}" class="btn-call">📞 SÜRÜCÜYÜ ARA</a>
-            <div style="text-align:left; margin-top:20px;">
-                <p style="font-size:12px; color:#64748b; font-weight:800; margin-bottom:10px;">HIZLI WHATSAPP:</p>
-                <a href="https://wa.me/${finalTel}?text=${encodeURIComponent('Merhaba, camınız açık kalmış.')}" class="msg-btn">🪟 Cam Açık</a>
-                <a href="https://wa.me/${finalTel}?text=${encodeURIComponent('Merhaba, hatalı park etmişsiniz.')}" class="msg-btn">🅿️ Hatalı Park</a>
-                <a href="https://wa.me/${finalTel}?text=${encodeURIComponent('ACİL DURUM VAR!')}" class="msg-btn" style="color:#991b1b; border-color:#fecaca; background:#fff5f5;">⚠️ ACİL DURUM!</a>
-            </div>`;
-    } else {
-        statusContainer.innerHTML = `<div class="status-badge" style="background:#ffebee; color:#c62828;">● MEŞGUL</div>`;
-        actionArea.innerHTML = `<div style="padding:20px; background:#f8fafc; border-radius:20px;">Sürücü şu an müsait değil.</div>`;
-    }
-}
-
-// MOBİL İÇİN KRİTİK DÜZELTME: Veri çekme isteği
-if(id) {
-    const script = document.createElement('script');
-    // Zaman damgası (t=...) ekleyerek telefonun her seferinde taze veri çekmesini sağlıyoruz
-    script.src = `${SCRIPT_URL}?id=${id}&callback=render&t=${new Date().getTime()}`;
-    script.onerror = () => { document.getElementById('loader').innerText = "Bağlantı Hatası! Lütfen internetinizi kontrol edin."; };
-    document.body.appendChild(script);
-} else {
-    document.getElementById('loader').innerText = "ID BELİRTİLMEDİ!";
-}
-
+        if(id && SCRIPT_URL.startsWith("http")) {
+            const script = document.createElement('script');
+            script.src = SCRIPT_URL + "?id=" + id + "&callback=render&t=" + new Date().getTime();
+            document.body.appendChild(script);
+        } else {
+            document.getElementById('loader').innerText = "BAĞLANTI AYARLANMADI VEYA ID EKSİK!";
+        }
+    </script>
+</body>
+</html>
