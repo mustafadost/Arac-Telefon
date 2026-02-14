@@ -34,58 +34,52 @@
     </div>
 
     <script>
-        // --- AYAR: Kendi Apps Script URL'nizi buraya yapıştırın ---
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzPomG8ST0x0WNKM2TkEc08A7ksp1Mf2rE6wBNiejcbagO5bzXWELR1XWoEnREdIjSjrQ/exec"; 
-        
-        const params = new URLSearchParams(window.location.search);
-        const id = params.get('id');
+      // index.html içindeki mevcut script bloğunu bununla değiştirin
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzPomG8ST0x0WNKM2TkEc08A7ksp1Mf2rE6wBNiejcbagO5bzXWELR1XWoEnREdIjSjrQ/exec"; 
+const params = new URLSearchParams(window.location.search);
+const id = params.get('id');
 
-        function render(data) {
-            const u = data.find(x => x.id == id);
-            if(!u) {
-                document.getElementById('loader').innerText = "❌ ARAÇ BULUNAMADI!";
-                return;
-            }
+function render(data) {
+    console.log("Veri geldi:", data); // Test için
+    const u = data.find(x => x.id == id);
+    if(!u) {
+        document.getElementById('loader').innerText = "❌ ARAÇ BULUNAMADI!";
+        return;
+    }
 
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('main-ui').style.display = 'block';
-            document.getElementById('plaka-box').innerText = u.plaka;
+    document.getElementById('loader').style.display = 'none';
+    document.getElementById('main-ui').style.display = 'block';
+    document.getElementById('plaka-box').innerText = u.plaka;
 
-            const statusContainer = document.getElementById('status-container');
-            const actionArea = document.getElementById('action-area');
+    const statusContainer = document.getElementById('status-container');
+    const actionArea = document.getElementById('action-area');
 
-            if(u.durum === "ACIK") {
-                statusContainer.innerHTML = `<div class="status-badge">● SÜRÜCÜ ŞU AN MÜSAİT</div>`;
-                
-                // Telefon numarasını temizle (Sadece rakamlar kalsın)
-                const cleanTel = u.tel.replace(/\D/g, ''); 
+    if(u.durum === "ACIK") {
+        statusContainer.innerHTML = `<div class="status-badge">● SÜRÜCÜ MÜSAİT</div>`;
+        const cleanTel = u.tel.toString().replace(/\D/g, ''); 
+        const finalTel = cleanTel.startsWith('90') ? cleanTel : '90' + cleanTel.replace(/^0+/, '');
 
-               // Telefon numarasını tamamen temizleyen ve formatlayan fonksiyon
-const rawTel = u.tel.toString().replace(/\D/g, ''); // Sadece rakamlar kalsın
-const cleanTel = rawTel.startsWith('90') ? rawTel : '90' + rawTel.replace(/^0+/, ''); 
+        actionArea.innerHTML = `
+            <a href="tel:${finalTel}" class="btn-call">📞 SÜRÜCÜYÜ ARA</a>
+            <div style="text-align:left; margin-top:20px;">
+                <p style="font-size:12px; color:#64748b; font-weight:800; margin-bottom:10px;">HIZLI WHATSAPP:</p>
+                <a href="https://wa.me/${finalTel}?text=${encodeURIComponent('Merhaba, camınız açık kalmış.')}" class="msg-btn">🪟 Cam Açık</a>
+                <a href="https://wa.me/${finalTel}?text=${encodeURIComponent('Merhaba, hatalı park etmişsiniz.')}" class="msg-btn">🅿️ Hatalı Park</a>
+                <a href="https://wa.me/${finalTel}?text=${encodeURIComponent('ACİL DURUM VAR!')}" class="msg-btn" style="color:#991b1b; border-color:#fecaca; background:#fff5f5;">⚠️ ACİL DURUM!</a>
+            </div>`;
+    } else {
+        statusContainer.innerHTML = `<div class="status-badge" style="background:#ffebee; color:#c62828;">● MEŞGUL</div>`;
+        actionArea.innerHTML = `<div style="padding:20px; background:#f8fafc; border-radius:20px;">Sürücü şu an müsait değil.</div>`;
+    }
+}
 
-// Mesaj içerikleri (URL formatına uygun güvenli metinler)
-const msgCam = encodeURIComponent("Merhaba, aracınızın camı açık kalmış.");
-const msgPark = encodeURIComponent("Merhaba, aracınızı hatalı park etmişsiniz, rica etsem çeker misiniz?");
-const msgAcil = encodeURIComponent("Merhaba, aracınızla ilgili ACİL bir durum var!");
-
-actionArea.innerHTML = `
-    <a href="tel:${cleanTel}" class="btn-call">📞 SÜRÜCÜYÜ ARA</a>
-    <div style="text-align:left; margin-top:20px;">
-        <p style="font-size:12px; color:#64748b; font-weight:800; margin: 0 0 10px 5px;">HIZLI WHATSAPP MESAJI:</p>
-        
-        <a href="https://wa.me/${cleanTel}?text=${msgCam}" class="msg-btn">
-            <span>🪟</span> Cam Açık Kalmış
-        </a>
-        
-        <a href="https://wa.me/${cleanTel}?text=${msgPark}" class="msg-btn">
-            <span>🅿️</span> Hatalı Park
-        </a>
-        
-        <a href="https://wa.me/${cleanTel}?text=${msgAcil}" class="msg-btn" style="color:#991b1b; border-color:#fecaca; background:#fff5f5;">
-            <span>⚠️</span> Acil Durum Var!
-        </a>
-    </div>
-`;
-
-
+// MOBİL İÇİN KRİTİK DÜZELTME: Veri çekme isteği
+if(id) {
+    const script = document.createElement('script');
+    // Zaman damgası (t=...) ekleyerek telefonun her seferinde taze veri çekmesini sağlıyoruz
+    script.src = `${SCRIPT_URL}?id=${id}&callback=render&t=${new Date().getTime()}`;
+    script.onerror = () => { document.getElementById('loader').innerText = "Bağlantı Hatası! Lütfen internetinizi kontrol edin."; };
+    document.body.appendChild(script);
+} else {
+    document.getElementById('loader').innerText = "ID BELİRTİLMEDİ!";
+}
