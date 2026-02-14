@@ -81,7 +81,7 @@ button{
 
 <script>
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyAIEfd_iqmdx-XhAGlZ15e7MlwTVgWaJsPfRVfmbuDM1KdcLHlllITnJ7LaWEB3cRpAw/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9BmiiV9qvJK5MNEXAA9YpMzmmDQzRB7wDYbLxu5-K4489NLuNy37Qva_uW4o8cEFhNA/exec";
 
 const params = new URLSearchParams(window.location.search);
 const qr = params.get("id");
@@ -92,3 +92,4 @@ if(!qr){
 
 fetch(SCRIPT_URL + "?id=" + qr)
 .then(re
+
