@@ -3,36 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sürücü İletişim</title>
+    <title>Sürücü İletişim & Kayıt</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
-        .card { background: white; width: 100%; max-width: 360px; border-radius: 35px; box-shadow: 0 15px 35px rgba(0,0,0,0.12); overflow: hidden; text-align: center; display: none; }
+        body { font-family: 'Inter', sans-serif; background: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; box-sizing: border-box; }
+        .card { background: white; width: 100%; max-width: 360px; border-radius: 35px; box-shadow: 0 15px 35px rgba(0,0,0,0.12); overflow: hidden; text-align: center; display: none; transition: transform 0.3s ease; }
         .header { background: #1e293b; padding: 35px 20px; color: white; }
-        .plaka { font-size: 30px; font-weight: 900; background: white; color: #1e293b; padding: 10px 25px; border-radius: 12px; display: inline-block; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .plaka { font-size: 30px; font-weight: 900; background: white; color: #1e293b; padding: 10px 25px; border-radius: 12px; display: inline-block; box-shadow: 0 5px 15px rgba(0,0,0,0.2); text-transform: uppercase; }
         .content { padding: 25px; }
-        .btn-call { display: flex; align-items: center; justify-content: center; gap: 10px; background: #10b981; color: white; text-decoration: none; padding: 18px; border-radius: 20px; font-weight: 700; font-size: 17px; margin-bottom: 20px; }
-        .msg-btn { background: #fff; color: #1e293b; padding: 15px; border-radius: 15px; text-decoration: none; font-size: 14px; border: 1px solid #e2e8f0; font-weight: 600; display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+        .btn-call { display: flex; align-items: center; justify-content: center; gap: 10px; background: #10b981; color: white; text-decoration: none; padding: 18px; border-radius: 20px; font-weight: 700; font-size: 17px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3); }
+        .msg-btn { background: #fff; color: #1e293b; padding: 15px; border-radius: 15px; text-decoration: none; font-size: 14px; border: 1px solid #e2e8f0; font-weight: 600; display: flex; align-items: center; gap: 10px; margin-top: 10px; transition: 0.2s; }
+        .msg-btn:active { background: #f8fafc; transform: scale(0.98); }
         .btn-reg { background: #3b82f6; color: white; padding: 18px; border-radius: 18px; text-decoration: none; display: block; font-weight: 700; margin-top: 15px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
-        #loader { font-weight: 700; color: #1e293b; font-size: 14px; }
+        #loader { font-weight: 700; color: #1e293b; font-size: 14px; text-align: center; }
     </style>
 </head>
 <body>
-    <div id="loader">LÜTFEN BEKLEYİNİZ...</div>
+    <div id="loader">SİSTEM KONTROL EDİLİYOR...</div>
 
     <div class="card" id="main-ui">
         <div class="header">
-            <div id="subtitle" style="font-size:10px; letter-spacing:2px; color:#94a3b8; margin-bottom:12px; font-weight:bold;">ARAÇ SAHİBİ PANELİ</div>
-            <div class="plaka" id="plaka-box">Giriş Yok</div>
+            <div id="subtitle" style="font-size:10px; letter-spacing:2px; color:#94a3b8; margin-bottom:12px; font-weight:bold;">AKILLI ARAÇ ETİKETİ</div>
+            <div class="plaka" id="plaka-box">GİRİŞ YOK</div>
         </div>
         <div class="content" id="action-area"></div>
     </div>
 
     <script>
-        // --- ÖNEMLİ AYARLAR ---
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw1MFXQ1MaokNCzQWjY0Tv0W_WOG9ei5TVWfFTCbhIsGjqaKeV7hLorjDpzMd1xQLvkBQ/exec"; 
-        const KAYIT_FORUM_URL = SCRIPT_URL; // Kayıt formu zaten aynı Script linkinde (p=kayit parametresi ile açılır)
-        // ----------------------
+        // --- AYARLAR ---
+        // Apps Script'ten aldığınız "Web Uygulaması URL"sini buraya yapıştırın
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz_nbgACG5DjBeCUpA17CHQ08X1xgCtyEnJam3wYM56WjR-ipeMjVAx7apzPV4KnxjQPA/exec"; 
+        // ---------------
 
         const params = new URLSearchParams(window.location.search);
         const id = params.get('id');
@@ -44,24 +45,30 @@
             const area = document.getElementById('action-area');
             const plakaBox = document.getElementById('plaka-box');
 
-            // DURUM 1: Tanımsız veya Boş Etiket
-            if (!u || !u.plaka || u.plaka.trim() === "") {
+            // DURUM 1: EĞER ID TABLODA YOKSA VEYA PLAKA SÜTUNU BOŞSA (Yeni/Boş Etiket)
+            if (!u || !u.plaka || u.plaka.toString().trim() === "") {
                 loader.style.display = 'none';
                 mainUi.style.display = 'block';
-                document.getElementById('subtitle').innerText = "YENİ NESİL ETİKET";
-                plakaBox.innerText = "KAYITSIZ";
+                document.getElementById('subtitle').innerText = "TANIMSIZ ETİKET";
+                plakaBox.innerText = "YENİ";
+                
+                // BURASI ÖNEMLİ: Kayıt formuna giderken mevcut 'id'yi parametre olarak gönderiyoruz
                 area.innerHTML = `
-                    <p style="color:#64748b; font-size:14px; margin-bottom:20px;">Bu akıllı etiket henüz bir araca tanımlanmamış.</p>
-                    <a href="${KAYIT_FORUM_URL}?p=kayit&id=${id || ''}" class="btn-reg">Hemen Kayıt Ol</a>
-                `;
+                    <div style="padding:10px;">
+                        <p style="color:#64748b; font-size:14px; margin-bottom:20px; line-height:1.5;">
+                            Bu etiket (ID: ${id || '?'}) henüz bir araca tanımlanmamış. Hemen bilgilerinizi girerek aktifleştirebilirsiniz.
+                        </p>
+                        <a href="${SCRIPT_URL}?p=kayit&id=${id || ''}" class="btn-reg">Hemen Kayıt Et</a>
+                    </div>`;
                 return;
             }
 
-            // DURUM 2: Kayıtlı Araç
+            // DURUM 2: EĞER ARAÇ KAYITLIYSA
             loader.style.display = 'none';
             mainUi.style.display = 'block';
             plakaBox.innerText = u.plaka;
 
+            // Telefon No Formatlama (Numarayı 90'lı hale getirir)
             let rawNum = u.tel.toString().replace(/\D/g, '');
             let cleanTel = rawNum.startsWith('90') ? rawNum : (rawNum.startsWith('0') ? '90' + rawNum.substring(1) : '90' + rawNum);
 
@@ -69,22 +76,27 @@
                 area.innerHTML = `
                     <a href="tel:+${cleanTel}" class="btn-call">📞 SÜRÜCÜYÜ ARA</a>
                     <div style="text-align:left;">
-                        <p style="font-size:11px; color:#64748b; font-weight:800; margin: 0 0 10px 5px;">HIZLI WHATSAPP:</p>
-                        <a href="https://api.whatsapp.com/send?phone=${cleanTel}&text=Merhaba, caminiz acik kalmis." class="msg-btn">🪟 Cam Açık</a>
-                        <a href="https://api.whatsapp.com/send?phone=${cleanTel}&text=Merhaba, hatali park etmissiniz." class="msg-btn">🅿️ Hatalı Park</a>
-                        <a href="https://api.whatsapp.com/send?phone=${cleanTel}&text=ACIL DURUM VAR!" class="msg-btn" style="color:#b91c1c; border-color:#fecaca; background:#fff5f5;">⚠️ ACİL DURUM!</a>
+                        <p style="font-size:11px; color:#64748b; font-weight:800; margin: 0 0 10px 5px;">HIZLI BİLDİRİM GÖNDER:</p>
+                        <a href="https://api.whatsapp.com/send?phone=${cleanTel}&text=Merhaba, aracinizin cami acik kalmis." class="msg-btn">🪟 Cam Açık Kalmış</a>
+                        <a href="https://api.whatsapp.com/send?phone=${cleanTel}&text=Merhaba, aracinizi hatali park etmissiniz." class="msg-btn">🅿️ Hatalı Park Etmişsiniz</a>
+                        <a href="https://api.whatsapp.com/send?phone=${cleanTel}&text=Merhaba, aracinizla ilgili ACIL bir durum var!" class="msg-btn" style="color:#b91c1c; border-color:#fecaca; background:#fff5f5;">⚠️ Acil Durum Var!</a>
                     </div>`;
             } else {
-                area.innerHTML = `<div style="padding:20px; background:#f8fafc; border-radius:20px; color:#64748b; border: 1px dashed #cbd5e1;">Sürücü şu an meşgul.</div>`;
+                area.innerHTML = `
+                    <div style="padding:25px; background:#f8fafc; border-radius:25px; color:#64748b; font-weight:600; border: 1px dashed #cbd5e1;">
+                        Sürücü şu an iletişim kabul etmiyor (Meşgul Modu).
+                    </div>`;
             }
         }
 
+        // Veri Çekme Başlatıcı
         if(id) {
             const script = document.createElement('script');
+            // 'v=' parametresi tarayıcının sayfayı önbelleğe alıp (cache) eski veriyi göstermesini engeller
             script.src = SCRIPT_URL + "?id=" + id + "&callback=render&v=" + Date.now();
             document.body.appendChild(script);
         } else {
-            document.getElementById('loader').innerText = "QR KODU GEÇERSİZ!";
+            document.getElementById('loader').innerHTML = "❌ GEÇERSİZ QR KOD<br><small>Lütfen etiketi kontrol edin.</small>";
         }
     </script>
 </body>
