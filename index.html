@@ -5,7 +5,8 @@
 <title>Araç Bilgi</title>
 <style>
 body{font-family:Arial;text-align:center;padding:40px}
-button{padding:10px 20px;margin-top:15px}
+button{padding:10px 20px;margin-top:10px}
+input{padding:8px;margin:5px}
 </style>
 </head>
 <body>
@@ -14,7 +15,7 @@ button{padding:10px 20px;margin-top:15px}
 
 <script>
 
-const API = "https://script.google.com/macros/s/AKfycbzX80eX9rfU9Kkrrg4qpFyAlnYgbQJ7uoLFDSk6_TmS1lkbqsVuHSmzF6IxdxoNe3XsXg/exec";
+const API = "https://script.google.com/macros/s/AKfycbyAIX6nPAnTG3EVGlXyaLZURacHbWri7GTEexSwBw6ltEhPSO5OY5UPcZDFQ7VIv50iJg/exec";
 
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
@@ -24,19 +25,21 @@ if(!id){
 }else{
 
 fetch(API + "?id=" + id)
-.then(res => res.json())
-.then(data => {
+.then(response => response.text())
+.then(text => {
 
-  if(data.status == "sahiplen"){
+  const data = JSON.parse(text);
+
+  if(data.status === "sahiplen"){
     document.getElementById("icerik").innerHTML = `
       <h2>Etiketi Sahiplen</h2>
-      <input id="ad" placeholder="Adınız"><br><br>
-      <input id="tel" placeholder="Telefon"><br><br>
+      <input id="ad" placeholder="Adınız"><br>
+      <input id="tel" placeholder="Telefon"><br>
       <button onclick="kaydet()">Kaydet</button>
     `;
   }
 
-  else if(data.status == "profil"){
+  else if(data.status === "profil"){
     document.getElementById("icerik").innerHTML = `
       <h2>${data.ad}</h2>
       <a href="tel:${data.telefon}">📞 Ara</a><br><br>
@@ -45,7 +48,7 @@ fetch(API + "?id=" + id)
     `;
   }
 
-  else if(data.status == "pasif"){
+  else if(data.status === "pasif"){
     document.getElementById("icerik").innerHTML = "Bu kart pasif";
   }
 
@@ -53,6 +56,9 @@ fetch(API + "?id=" + id)
     document.getElementById("icerik").innerHTML = "QR sistemde yok";
   }
 
+})
+.catch(err=>{
+  document.getElementById("icerik").innerHTML = "Bağlantı hatası";
 });
 
 }
@@ -70,9 +76,10 @@ fetch(API,{
     telefon:tel
   })
 })
-.then(res=>res.json())
-.then(data=>{
-  if(data.status=="tamam"){
+.then(res=>res.text())
+.then(text=>{
+  const data = JSON.parse(text);
+  if(data.status==="tamam"){
     location.reload();
   }
 });
