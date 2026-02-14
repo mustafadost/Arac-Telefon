@@ -19,12 +19,28 @@ body { font-family: sans-serif; background: #f1f5f9; display: flex; justify-cont
 <div class="plaka" id="P"></div>
 <div id="A"></div>
 </div>
-
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyziU8p9aVyZfTwohrRk6Yr8JXerk2Ws8ZgPjgq701vRRzSju1H7LHeD_PvnU2A8uH9Qg/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzrn562Hp-wRkKH-F4SXuheI5YQsbZkOrEZGSLIMxPvSfHOhfJVCmNOe_t5R0hO-rBU-g/exec";
 const id = new URLSearchParams(window.location.search).get('id');
-
+function render(data) {
+const u = data.find(x => x.id == id);
+document.getElementById('L').style.display = 'none';
+document.getElementById('M').style.display = 'block';
+const area = document.getElementById('A');
+const plakaBox = document.getElementById('P');
+if (!u || !u.plaka) {
+plakaBox.innerText = "YENİ";
+area.innerHTML = "<p>Bu etiket henüz tanımlanmamış.</p><a href='" + SCRIPT_URL + "?p=kayit&id=" + id + "' class='btn reg'>Hemen Kayıt Et</a>";
+} else {
+plakaBox.innerText = u.plaka;
+area.innerHTML = "<a href='tel:" + u.tel + "' class='btn'>Sürücüyü Ara</a><a href='" + u.tel.replace(/\D/g,'') + "' class='btn' style='background:#25D366'>WhatsApp</a>";
+}
+}
+if(id) {
+const s = document.createElement('script');
+s.src = SCRIPT_URL + "?id=" + id + "&callback=render&v=" + Date.now();
+document.body.appendChild(s);
+}
 </script>
-
 </body>
 </html>
