@@ -9,20 +9,22 @@
         body { font-family: 'Inter', sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
         .card { background: white; width: 100%; max-width: 380px; border-radius: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; text-align: center; display: none; }
         .header { background: linear-gradient(180deg, #1e293b, #0f172a); padding: 40px 20px; color: white; }
-        .header-title { font-size: 12px; letter-spacing: 2px; color: #94a3b8; text-transform: uppercase; margin-bottom: 15px; font-weight: 600; }
+        .header-title { font-size: 11px; letter-spacing: 2px; color: #94a3b8; text-transform: uppercase; margin-bottom: 15px; font-weight: 600; }
         .plaka { font-size: 32px; font-weight: 900; background: white; color: #1e293b; padding: 8px 25px; border-radius: 15px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .content { padding: 30px 25px; }
-        .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; border-radius: 50px; font-weight: 700; font-size: 14px; margin-bottom: 20px; background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
-        .btn-call { display: flex; align-items: center; justify-content: center; gap: 10px; background: #2ecc71; color: white; text-decoration: none; padding: 18px; border-radius: 20px; font-weight: 700; font-size: 18px; transition: 0.3s; box-shadow: 0 8px 15px rgba(46, 204, 113, 0.3); }
-        .msg-btn { background: #fff; color: #1e293b; padding: 16px; border-radius: 18px; text-decoration: none; font-size: 14px; border: 1px solid #e2e8f0; font-weight: 600; display: flex; align-items: center; gap: 10px; margin-top: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        #loader { font-weight: 600; color: #1e293b; }
+        .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; border-radius: 50px; font-weight: 700; font-size: 13px; margin-bottom: 25px; background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .btn-call { display: flex; align-items: center; justify-content: center; gap: 10px; background: #2ecc71; color: white; text-decoration: none; padding: 18px; border-radius: 20px; font-weight: 700; font-size: 18px; transition: 0.3s; box-shadow: 0 8px 15px rgba(46, 204, 113, 0.3); margin-bottom: 25px; }
+        .msg-btn { background: #fff; color: #1e293b; padding: 16px; border-radius: 18px; text-decoration: none; font-size: 14px; border: 1px solid #e2e8f0; font-weight: 600; display: flex; align-items: center; gap: 10px; margin-top: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.2s; }
+        .msg-btn:active { transform: scale(0.97); background: #f8fafc; }
+        #loader { font-weight: 600; color: #1e293b; letter-spacing: 1px; }
     </style>
 </head>
 <body>
     <div id="loader">LÜTFEN BEKLEYİN...</div>
+
     <div class="card" id="main-ui">
         <div class="header">
-            <div class="header-title">ARAÇ SAHİBİ BİLGİSİ</div>
+            <div class="header-title">ARAÇ SAHİBİ İLETİŞİM PANELİ</div>
             <div class="plaka" id="plaka-box"></div>
         </div>
         <div class="content">
@@ -30,37 +32,52 @@
             <div id="action-area"></div>
         </div>
     </div>
+
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbySBEJwwxI_TfWNgQfTuAlvKfwAIj0vYUBGp0nj_VJRB01SmpLHHklmOfdI2pmL-dkvsQ/exec"; 
+        // --- AYAR: Kendi Apps Script URL'nizi buraya yapıştırın ---
+        const SCRIPT_URL = "BURAYA_GUNCEL_SCRIPT_URL_YAPISTIR"; 
+        
         const params = new URLSearchParams(window.location.search);
         const id = params.get('id');
 
         function render(data) {
             const u = data.find(x => x.id == id);
-            if(!u) { document.getElementById('loader').innerText = "❌ ARAÇ BULUNAMADI!"; return; }
+            if(!u) {
+                document.getElementById('loader').innerText = "❌ ARAÇ BULUNAMADI!";
+                return;
+            }
+
             document.getElementById('loader').style.display = 'none';
             document.getElementById('main-ui').style.display = 'block';
             document.getElementById('plaka-box').innerText = u.plaka;
+
             const statusContainer = document.getElementById('status-container');
             const actionArea = document.getElementById('action-area');
 
             if(u.durum === "ACIK") {
-                statusContainer.innerHTML = `<div class="status-badge">● İLETİŞİME AÇIK</div>`;
+                statusContainer.innerHTML = `<div class="status-badge">● SÜRÜCÜ ŞU AN MÜSAİT</div>`;
+                
+                // Telefon numarasını temizle (Sadece rakamlar kalsın)
+                const cleanTel = u.tel.replace(/\D/g, ''); 
+
                 actionArea.innerHTML = `
                     <a href="tel:${u.tel}" class="btn-call">📞 SÜRÜCÜYÜ ARA</a>
-                    <div style="margin-top:20px; text-align:left;">
-                        <p style="font-size:12px; color:#64748b; font-weight:700; margin-left:5px;">HIZLI WHATSAPP MESAJI:</p>
-                        <a href="https://wa.me/${u.tel}?text=Merhaba, aracınızın camı açık kalmış." class="msg-btn">🪟 Cam Açık Kalmış</a>
-                        <a href="https://wa.me/${u.tel}?text=Merhaba, aracınızı hatalı park etmişsiniz." class="msg-btn">🅿️ Hatalı Park</a>
-                        <a href="https://wa.me/${u.tel}?text=Acil durum var!" class="msg-btn" style="color:#991b1b; border-color:#fecaca;">⚠️ Acil Durum Var!</a>
-                    </div>`;
+                    <div style="text-align:left;">
+                        <p style="font-size:12px; color:#64748b; font-weight:800; margin: 0 0 10px 5px;">HIZLI WHATSAPP MESAJI:</p>
+                        <a href="https://api.whatsapp.com/send?phone=${cleanTel}&text=${encodeURIComponent('Merhaba, aracınızın camı açık kalmış.')}" class="msg-btn">🪟 Cam Açık Kalmış</a>
+                        <a href="https://api.whatsapp.com/send?phone=${cleanTel}&text=${encodeURIComponent('Merhaba, aracınızı hatalı park etmişsiniz, rica etsem çeker misiniz?')}" class="msg-btn">🅿️ Hatalı Park</a>
+                        <a href="https://api.whatsapp.com/send?phone=${cleanTel}&text=${encodeURIComponent('Merhaba, aracınızla ilgili ACİL bir durum var!')}" class="msg-btn" style="color:#991b1b; border-color:#fecaca; background:#fff5f5;">⚠️ Acil Durum Var!</a>
+                    </div>
+                `;
             } else {
-                statusContainer.innerHTML = `<div class="status-badge" style="background:#ffebee; color:#c62828;">● ŞU AN MEŞGUL</div>`;
-                actionArea.innerHTML = `<div style="padding:20px; background:#f8fafc; border-radius:20px;">Sürücü şu an müsait değil.</div>`;
+                statusContainer.innerHTML = `<div class="status-badge" style="background:#ffebee; color:#c62828; border-color:#ffcdd2;">● ŞU AN MEŞGUL</div>`;
+                actionArea.innerHTML = `<div style="padding:30px; background:#f8fafc; border-radius:25px; color:#64748b; font-weight:600;">Sürücü şu an iletişim kabul etmiyor.</div>`;
             }
         }
-        if(id) {
+
+        if(id && SCRIPT_URL !== "https://script.google.com/macros/s/AKfycbzv4tSyfdO212jxLIwi-xQEp39eEjfr3UXVh3bZLm8Cy7VPfQ4WIrk5wAtQcB1MyASSPA/exec") {
             const s = document.createElement('script');
+            // Cache engellemek için zaman damgası ekliyoruz
             s.src = SCRIPT_URL + "?id=" + id + "&callback=render&t=" + new Date().getTime();
             document.body.appendChild(s);
         }
