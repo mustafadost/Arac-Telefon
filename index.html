@@ -30,7 +30,7 @@ body{
 .plaka{
   background:black;
   color:white;
-  font-size:32px;
+  font-size:30px;
   font-weight:bold;
   padding:15px;
   border-radius:12px;
@@ -38,57 +38,46 @@ body{
   letter-spacing:3px;
 }
 
-input{
+input, select{
   width:100%;
-  padding:12px;
-  margin:8px 0;
-  border-radius:10px;
+  padding:10px;
+  margin:6px 0;
+  border-radius:8px;
   border:1px solid #ccc;
-  font-size:16px;
 }
 
 button{
   width:100%;
-  padding:14px;
-  margin-top:10px;
+  padding:12px;
+  margin-top:8px;
   border:none;
-  border-radius:12px;
+  border-radius:10px;
   background:#1f4037;
   color:white;
-  font-size:16px;
   font-weight:bold;
   cursor:pointer;
-}
-
-button:hover{
-  opacity:0.9;
 }
 
 a{
   display:block;
   background:#28a745;
   color:white;
-  padding:14px;
-  border-radius:12px;
+  padding:12px;
+  border-radius:10px;
   text-decoration:none;
-  margin-top:10px;
+  margin-top:8px;
   font-weight:bold;
 }
 
 table{
   width:100%;
   border-collapse:collapse;
-  margin-top:15px;
   font-size:13px;
 }
 
 th,td{
   border:1px solid #ddd;
   padding:6px;
-}
-
-th{
-  background:#eee;
 }
 
 </style>
@@ -100,10 +89,10 @@ th{
 
 <script>
 
-const API="https://script.google.com/macros/s/AKfycbyu4dsauLIqeyclaBLA-KqGi0z0RxdI8X2KHgbMFJbQGKhqVh5lPLWYSV5koC7NS9cfDg/exec";
-const params = new URLSearchParams(window.location.search);
-const id = params.get("id");
-const admin = params.get("admin");
+const API="https://script.google.com/macros/s/AKfycbyG54dwXCEukGmiJCNbFIuTqQB-i7uqlXlFomKJ9Bpwwa6-rbW_18mdkliAPo3seXucPg/exec";
+const params=new URLSearchParams(window.location.search);
+const id=params.get("id");
+const admin=params.get("admin");
 
 if(admin=="1234"){
   adminPanel();
@@ -112,7 +101,7 @@ else if(id){
   kontrol();
 }
 else{
-  document.getElementById("content").innerHTML="Geçersiz QR.";
+  document.getElementById("content").innerHTML="Geçersiz QR";
 }
 
 function kontrol(){
@@ -131,7 +120,20 @@ function kayitVar(d){
   document.getElementById("content").innerHTML=`
     <div class="plaka">${d.plaka}</div>
     <p><b>Durum:</b> ${d.durum}</p>
-    <a href="tel:${d.telefon}">ARA</a>
+
+    <a href="tel:${d.telefon}">🚗 SÜRÜCÜYÜ ARA</a>
+
+    <button onclick="alert('Cam açık bildirimi gönderildi')">
+      🪟 Cam Açık
+    </button>
+
+    <button onclick="alert('Hatalı park bildirimi gönderildi')">
+      ⚠️ Hatalı Park
+    </button>
+
+    <button onclick="alert('Acil durum bildirimi gönderildi')">
+      🚨 Acil Durum
+    </button>
   `;
 }
 
@@ -156,47 +158,37 @@ function kaydet(){
   fetch(`${API}?action=kayit&id=${id}&plaka=${plaka}&ad=${ad}&telefon=${telefon}&sifre=${sifre}`)
   .then(r=>r.json())
   .then(()=>{
-    alert("Kayıt Başarılı");
+    alert("Kayıt başarılı");
     location.reload();
   });
 }
-function kayitVar(d){
-  document.getElementById("content").innerHTML=`
-    <div class="plaka">${d.plaka}</div>
-    <p><b>Durum:</b> ${d.durum}</p>
 
-    <a href="tel:${d.telefon}">🚗 SÜRÜCÜYÜ ARA</a>
-
-    <button onclick="mesajGonder('Aracınızın camı açık olabilir.')">
-      🪟 Cam Açık Olabilir
-    </button>
-
-    <button onclick="mesajGonder('Aracınız hatalı park etmiş olabilir.')">
-      ⚠️ Hatalı Park
-    </button>
-
-    <button onclick="mesajGonder('Aracınızda acil bir durum olabilir.')">
-      🚨 Acil Durum
-    </button>
-  `;
-}
-function mesajGonder(mesaj){
-  alert("Bildirim Gönderildi:\n\n"+mesaj);
-}
 function adminPanel(){
+
   fetch(`${API}?action=adminListe`)
   .then(r=>r.json())
   .then(d=>{
-    let html="<h3>ADMIN PANEL</h3>";
-    html+="<table>";
-    html+="<tr><th>ID</th><th>Plaka</th><th>Telefon</th><th>Durum</th></tr>";
+
+    let html="<h3>ADMIN PANEL</h3><table>";
+    html+="<tr><th>ID</th><th>Plaka</th><th>Tel</th><th>Durum</th><th>İşlem</th></tr>";
 
     d.liste.forEach(k=>{
-      html+=`<tr>
+
+      html+=`
+      <tr>
         <td>${k.id}</td>
         <td>${k.plaka}</td>
-        <td>${k.telefon}</td>
-        <td>${k.durum}</td>
+        <td><input id="tel_${k.id}" value="${k.telefon}"></td>
+        <td>
+          <select id="durum_${k.id}">
+            <option ${k.durum=="aktif"?"selected":""}>aktif</option>
+            <option ${k.durum=="pasif"?"selected":""}>pasif</option>
+          </select>
+        </td>
+        <td>
+          <button onclick="guncelle('${k.id}')">Kaydet</button>
+          <button onclick="sil('${k.id}')">Sil</button>
+        </td>
       </tr>`;
     });
 
@@ -205,8 +197,25 @@ function adminPanel(){
   });
 }
 
+function guncelle(id){
+
+  const telefon=document.getElementById("tel_"+id).value;
+  const durum=document.getElementById("durum_"+id).value;
+
+  fetch(`${API}?action=adminGuncelle&id=${id}&telefon=${telefon}&durum=${durum}`)
+  .then(()=>alert("Güncellendi"));
+}
+
+function sil(id){
+
+  if(confirm("Silmek istiyor musunuz?")){
+
+    fetch(`${API}?action=adminSil&id=${id}`)
+    .then(()=>location.reload());
+  }
+}
+
 </script>
 
 </body>
 </html>
-
