@@ -1,174 +1,184 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QR Araç İletişim</title>
-
+<title>Araç İletişim</title>
 <style>
+
 body{
-  margin:0;
-  font-family:Arial, sans-serif;
-  background:linear-gradient(135deg,#1e3c72,#2a5298);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
+font-family:Arial;
+background:#f4f4f4;
+padding:20px;
 }
-.card{
-  background:rgba(255,255,255,0.15);
-  backdrop-filter:blur(15px);
-  padding:25px;
-  border-radius:20px;
-  width:95%;
-  max-width:420px;
-  color:white;
-  box-shadow:0 8px 25px rgba(0,0,0,0.3);
+
+h1{
+text-align:center;
+font-size:30px;
 }
-h2{text-align:center;margin-top:0}
+
 input{
-  width:100%;
-  padding:12px;
-  margin:8px 0;
-  border:none;
-  border-radius:8px;
+width:100%;
+padding:12px;
+margin:8px 0;
+font-size:16px;
 }
+
 button{
-  width:100%;
-  padding:14px;
-  margin:8px 0;
-  border:none;
-  border-radius:10px;
-  font-size:15px;
-  cursor:pointer;
+width:100%;
+padding:14px;
+margin:8px 0;
+font-size:16px;
+border:none;
+cursor:pointer;
+border-radius:6px;
 }
-.primary{background:#25D366;color:white;}
-.red{background:#e74c3c;color:white;}
-.blue{background:#3498db;color:white;}
-.gray{background:#555;color:white;}
+
+.primary{background:#007bff;color:white;}
+.red{background:#dc3545;color:white;}
+.blue{background:#007bff;color:white;}
+.gray{background:#6c757d;color:white;}
+
+.callBtn{
+background:#25D366;
+font-size:20px;
+padding:18px;
+font-weight:bold;
+}
+
 .link{
-  text-align:center;
-  margin-top:10px;
-  cursor:pointer;
-  font-size:14px;
-  opacity:0.8;
+text-align:center;
+margin-top:15px;
+color:blue;
+cursor:pointer;
 }
-.small{font-size:13px;text-align:center;margin-top:10px}
+
 </style>
 </head>
-
 <body>
 
-<div class="card">
-  <div id="content">Yükleniyor...</div>
-</div>
+<div id="content">Yükleniyor...</div>
 
 <script>
 
-const API = "https://script.google.com/macros/s/AKfycbwwJAi9nBV361Gx7MnNdUuX5HU6POIqMfyxHKKymK4OUM419DIQKyhiMbB922aNUemd-Q/exec";
+const API="https://script.google.com/macros/s/AKfycbzEswAFvgzwSOP8UOAJIbwKPynn-zlya_SdSria6gsmn-4c6awBZpXaHrNXoY1AedWU/exec";
+const id=new URLSearchParams(window.location.search).get("id");
 
-const params = new URLSearchParams(window.location.search);
-const id = params.get("id");
+function normalizeTel(t){
+t=t.replace(/\D/g,"");
+if(t.startsWith("90")) t=t.slice(2);
+if(!t.startsWith("0")) t="0"+t;
+return t;
+}
 
-if(!id){
-  document.getElementById("content").innerHTML="QR Hatalı.";
-}else{
-  kontrol();
+function normalizePlaka(p){
+return p.toUpperCase().replace(/\s/g,"");
 }
 
 function kontrol(){
-fetch(`${API}?action=kontrol&id=${id}`)
-.then(res=>res.json())
-.then(data=>{
 
-  if(data.kayit){
-    kayitForm();
-  }
-  else if(data.menu){
-    menu(data.telefon);
-  }
-  else if(data.pasif){
-    document.getElementById("content").innerHTML=
-    "<h2>İletişim Kapalı</h2><div class='small'>Araç sahibi iletişimi devre dışı bırakmış.</div>"+altMenu();
-  }
-  else{
-    document.getElementById("content").innerHTML="ID bulunamadı.";
-  }
+fetch(API,{
+method:"POST",
+body:JSON.stringify({action:"kontrol",id:id})
+})
+.then(r=>r.json())
+.then(d=>{
+
+if(!d.kayit){
+kayitEkran();
+}else{
+if(d.durum=="pasif"){
+document.getElementById("content").innerHTML="<h2>Bu araç şu an pasif.</h2>";
+}else{
+menu(d.plaka,d.telefon);
+}
+}
 
 });
 }
 
-function kayitForm(){
+function kayitEkran(){
 document.getElementById("content").innerHTML=`
 <h2>Kayıt Oluştur</h2>
 <input id="plaka" placeholder="Plaka">
 <input id="ad" placeholder="Ad Soyad">
-<input id="telefon" placeholder="Telefon 05xx...">
+<input id="telefon" placeholder="Telefon">
 <input id="sifre" type="password" placeholder="Şifre">
 <button class="primary" onclick="kaydet()">Kaydet</button>
-${altMenu()}
 `;
 }
 
 function kaydet(){
+
+let tel=normalizeTel(telefon.value);
+let pl=normalizePlaka(plaka.value);
+
 fetch(API,{
 method:"POST",
 body:JSON.stringify({
 action:"kayit",
 id:id,
-plaka:plaka.value,
+plaka:pl,
 ad:ad.value,
-telefon:telefon.value,
+telefon:tel,
 sifre:sifre.value
 })
 })
-.then(res=>res.json())
+.then(r=>r.json())
 .then(d=>{
 if(d.success){
-alert("Kayıt tamamlandı.");
+alert("Kayıt tamamlandı");
 kontrol();
 }
 });
 }
 
-function menu(tel){
+function menu(plaka,tel){
+
 let mesaj=(text)=>`https://wa.me/${tel}?text=${encodeURIComponent(text)}`;
 
 document.getElementById("content").innerHTML=`
-<h2>İletişim</h2>
+<h1>${plaka}</h1>
+
 <button class="red" onclick="window.location='${mesaj("Acil durum nedeniyle aracınıza ulaşmaya çalışıyorum.")}'">🚨 Acil Durum</button>
+
 <button class="blue" onclick="window.location='${mesaj("Aracınız yanlış park edilmiş.")}'">🚗 Yanlış Park</button>
+
 <button class="blue" onclick="window.location='${mesaj("Aracınızın camları açık kalmış.")}'">🌬 Camlar Açık</button>
-<button class="primary" onclick="window.location='tel:${tel}'">📞 Sürücüyü Ara</button>
-${altMenu()}
+
+<a href="tel:${tel}">
+<button class="callBtn">📞 HEMEN ARA</button>
+</a>
+
+<div class="link" onclick="sahipGiris()">Araç Sahibi Girişi</div>
 `;
 }
 
-function altMenu(){
-return `
-<div class="small">
-<hr>
-<h4>Durum Güncelle</h4>
+function sahipGiris(){
+document.getElementById("content").innerHTML=`
+<h2>Araç Sahibi</h2>
 <input id="p2" placeholder="Plaka">
 <input id="s2" type="password" placeholder="Şifre">
-<button class="gray" onclick="durum()">Aktif/Pasif Değiştir</button>
-<div class="link" onclick="admin()">Admin</div>
-</div>`;
+<button class="gray" onclick="durumDegistir()">Aktif / Pasif Değiştir</button>
+<button class="primary" onclick="kontrol()">Geri</button>
+`;
 }
 
-function durum(){
+function durumDegistir(){
+
+let pl=normalizePlaka(p2.value);
+
 fetch(API,{
 method:"POST",
 body:JSON.stringify({
 action:"durum",
-plaka:p2.value,
+plaka:pl,
 sifre:s2.value
 })
 })
 .then(r=>r.json())
 .then(d=>{
 if(d.success){
-alert("Yeni Durum: "+d.durum);
+alert("Yeni durum: "+d.yeni);
 kontrol();
 }else{
 alert("Bilgiler hatalı");
@@ -176,32 +186,7 @@ alert("Bilgiler hatalı");
 });
 }
 
-function admin(){
-let sifre=prompt("Admin Şifre:");
-fetch(`${API}?action=adminLogin&sifre=${sifre}`)
-.then(r=>r.json())
-.then(d=>{
-if(d.success){
-adminPanel();
-}else{
-alert("Hatalı Şifre");
-}
-});
-}
-
-function adminPanel(){
-fetch(`${API}?action=adminListe`)
-.then(r=>r.json())
-.then(d=>{
-let html="<h2>Admin Panel</h2>";
-d.liste.forEach(k=>{
-html+=`<div style="margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.2)">
-${k.id}<br>${k.plaka}<br>${k.telefon}<br>${k.durum}<br><br></div>`;
-});
-html+="<button class='primary' onclick='kontrol()'>Kapat</button>";
-document.getElementById("content").innerHTML=html;
-});
-}
+kontrol();
 
 </script>
 
