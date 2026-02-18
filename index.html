@@ -3,93 +3,204 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Araç Sahibine Ulaş</title>
+<title>QR Araç İletişim</title>
 
 <style>
 body{
+  margin:0;
   font-family:Arial, sans-serif;
-  background:#f2f4f7;
+  background:linear-gradient(135deg,#1e3c72,#2a5298);
   display:flex;
   justify-content:center;
   align-items:center;
   height:100vh;
-  margin:0;
 }
-.box{
-  background:white;
-  padding:30px;
-  border-radius:12px;
-  box-shadow:0 5px 20px rgba(0,0,0,0.1);
-  text-align:center;
-  width:90%;
-  max-width:400px;
+.card{
+  background:rgba(255,255,255,0.15);
+  backdrop-filter:blur(15px);
+  padding:25px;
+  border-radius:20px;
+  width:95%;
+  max-width:420px;
+  color:white;
+  box-shadow:0 8px 25px rgba(0,0,0,0.3);
+}
+h2{text-align:center;margin-top:0}
+input{
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border:none;
+  border-radius:8px;
 }
 button{
-  background:#25D366;
-  color:white;
-  border:none;
-  padding:15px 25px;
-  font-size:16px;
-  border-radius:8px;
-  cursor:pointer;
   width:100%;
+  padding:14px;
+  margin:8px 0;
+  border:none;
+  border-radius:10px;
+  font-size:15px;
+  cursor:pointer;
 }
-button:hover{
-  opacity:0.9;
+.primary{background:#25D366;color:white;}
+.red{background:#e74c3c;color:white;}
+.blue{background:#3498db;color:white;}
+.gray{background:#555;color:white;}
+.link{
+  text-align:center;
+  margin-top:10px;
+  cursor:pointer;
+  font-size:14px;
+  opacity:0.8;
 }
-.loading{
-  color:#555;
-}
-.error{
-  color:red;
-}
+.small{font-size:13px;text-align:center;margin-top:10px}
 </style>
 </head>
 
 <body>
 
-<div class="box">
-  <h2>Araç Sahibine Ulaş</h2>
-  <div id="content" class="loading">Yükleniyor...</div>
+<div class="card">
+  <div id="content">Yükleniyor...</div>
 </div>
 
 <script>
+
+const API = "https://script.google.com/macros/s/AKfycbwwJAi9nBV361Gx7MnNdUuX5HU6POIqMfyxHKKymK4OUM419DIQKyhiMbB922aNUemd-Q/exec";
 
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
 if(!id){
-  document.getElementById("content").innerHTML =
-    "<div class='error'>Plaka parametresi bulunamadı.</div>";
+  document.getElementById("content").innerHTML="QR Hatalı.";
 }else{
+  kontrol();
+}
 
-fetch("https://script.google.com/macros/s/AKfycbxxUYu11ujEg59ViirR2ZF-gVFbQXQdp_fnQ7UIt7xzk8N3OL8zsBRrQP3kBiPc3Mj0eA/exec?id=" + id)
-.then(response => response.json())
-.then(data => {
+function kontrol(){
+fetch(`${API}?action=kontrol&id=${id}`)
+.then(res=>res.json())
+.then(data=>{
 
-  if(data.success){
-
-    const mesaj = "Aracınızla ilgili size ulaşmak istiyorum.";
-    const whatsappLink =
-      "https://wa.me/" + data.telefon +
-      "?text=" + encodeURIComponent(mesaj);
-
-    document.getElementById("content").innerHTML =
-      `<button onclick="window.location.href='${whatsappLink}'">
-        WhatsApp ile Mesaj Gönder
-      </button>`;
-
-  }else{
-    document.getElementById("content").innerHTML =
-      "<div class='error'>Araç bulunamadı.</div>";
+  if(data.kayit){
+    kayitForm();
+  }
+  else if(data.menu){
+    menu(data.telefon);
+  }
+  else if(data.pasif){
+    document.getElementById("content").innerHTML=
+    "<h2>İletişim Kapalı</h2><div class='small'>Araç sahibi iletişimi devre dışı bırakmış.</div>"+altMenu();
+  }
+  else{
+    document.getElementById("content").innerHTML="ID bulunamadı.";
   }
 
-})
-.catch(error => {
-  document.getElementById("content").innerHTML =
-    "<div class='error'>Sistem hatası oluştu.</div>";
 });
+}
 
+function kayitForm(){
+document.getElementById("content").innerHTML=`
+<h2>Kayıt Oluştur</h2>
+<input id="plaka" placeholder="Plaka">
+<input id="ad" placeholder="Ad Soyad">
+<input id="telefon" placeholder="Telefon 05xx...">
+<input id="sifre" type="password" placeholder="Şifre">
+<button class="primary" onclick="kaydet()">Kaydet</button>
+${altMenu()}
+`;
+}
+
+function kaydet(){
+fetch(API,{
+method:"POST",
+body:JSON.stringify({
+action:"kayit",
+id:id,
+plaka:plaka.value,
+ad:ad.value,
+telefon:telefon.value,
+sifre:sifre.value
+})
+})
+.then(res=>res.json())
+.then(d=>{
+if(d.success){
+alert("Kayıt tamamlandı.");
+kontrol();
+}
+});
+}
+
+function menu(tel){
+let mesaj=(text)=>`https://wa.me/${tel}?text=${encodeURIComponent(text)}`;
+
+document.getElementById("content").innerHTML=`
+<h2>İletişim</h2>
+<button class="red" onclick="window.location='${mesaj("Acil durum nedeniyle aracınıza ulaşmaya çalışıyorum.")}'">🚨 Acil Durum</button>
+<button class="blue" onclick="window.location='${mesaj("Aracınız yanlış park edilmiş.")}'">🚗 Yanlış Park</button>
+<button class="blue" onclick="window.location='${mesaj("Aracınızın camları açık kalmış.")}'">🌬 Camlar Açık</button>
+<button class="primary" onclick="window.location='tel:${tel}'">📞 Sürücüyü Ara</button>
+${altMenu()}
+`;
+}
+
+function altMenu(){
+return `
+<div class="small">
+<hr>
+<h4>Durum Güncelle</h4>
+<input id="p2" placeholder="Plaka">
+<input id="s2" type="password" placeholder="Şifre">
+<button class="gray" onclick="durum()">Aktif/Pasif Değiştir</button>
+<div class="link" onclick="admin()">Admin</div>
+</div>`;
+}
+
+function durum(){
+fetch(API,{
+method:"POST",
+body:JSON.stringify({
+action:"durum",
+plaka:p2.value,
+sifre:s2.value
+})
+})
+.then(r=>r.json())
+.then(d=>{
+if(d.success){
+alert("Yeni Durum: "+d.durum);
+kontrol();
+}else{
+alert("Bilgiler hatalı");
+}
+});
+}
+
+function admin(){
+let sifre=prompt("Admin Şifre:");
+fetch(`${API}?action=adminLogin&sifre=${sifre}`)
+.then(r=>r.json())
+.then(d=>{
+if(d.success){
+adminPanel();
+}else{
+alert("Hatalı Şifre");
+}
+});
+}
+
+function adminPanel(){
+fetch(`${API}?action=adminListe`)
+.then(r=>r.json())
+.then(d=>{
+let html="<h2>Admin Panel</h2>";
+d.liste.forEach(k=>{
+html+=`<div style="margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.2)">
+${k.id}<br>${k.plaka}<br>${k.telefon}<br>${k.durum}<br><br></div>`;
+});
+html+="<button class='primary' onclick='kontrol()'>Kapat</button>";
+document.getElementById("content").innerHTML=html;
+});
 }
 
 </script>
