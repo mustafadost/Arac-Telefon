@@ -160,7 +160,29 @@ function kaydet(){
     location.reload();
   });
 }
+function kayitVar(d){
+  document.getElementById("content").innerHTML=`
+    <div class="plaka">${d.plaka}</div>
+    <p><b>Durum:</b> ${d.durum}</p>
 
+    <a href="tel:${d.telefon}">🚗 SÜRÜCÜYÜ ARA</a>
+
+    <button onclick="mesajGonder('Aracınızın camı açık olabilir.')">
+      🪟 Cam Açık Olabilir
+    </button>
+
+    <button onclick="mesajGonder('Aracınız hatalı park etmiş olabilir.')">
+      ⚠️ Hatalı Park
+    </button>
+
+    <button onclick="mesajGonder('Aracınızda acil bir durum olabilir.')">
+      🚨 Acil Durum
+    </button>
+  `;
+}
+function mesajGonder(mesaj){
+  alert("Bildirim Gönderildi:\n\n"+mesaj);
+}
 function adminPanel(){
   fetch(`${API}?action=adminListe`)
   .then(r=>r.json())
@@ -187,3 +209,4 @@ function adminPanel(){
 
 </body>
 </html>
+
