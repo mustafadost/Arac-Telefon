@@ -3,68 +3,75 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Araç İletişim</title>
+
+<title>Araç İletişim Sistemi</title>
 
 <style>
 
 body{
   margin:0;
-  font-family:Arial;
-  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:100vh;
-}
-
-.card{
-  background:white;
-  width:95%;
-  max-width:480px;
-  padding:30px;
-  border-radius:20px;
-  box-shadow:0 20px 50px rgba(0,0,0,0.5);
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg,#f5f7fa,#e4e8f0);
   text-align:center;
+  padding:20px;
 }
 
-.plaka{
-  background:black;
-  color:white;
-  font-size:36px;
-  padding:18px;
-  border-radius:12px;
-  margin-bottom:15px;
+#container{
+  max-width:500px;
+  margin:auto;
+}
+
+#plakaBox{
+  font-size:38px;
+  font-weight:900;
   letter-spacing:4px;
+  margin:25px 0;
+  padding:18px;
+  border-radius:14px;
+  background: linear-gradient(135deg,#111,#333);
+  color:#fff;
+  box-shadow:0 6px 18px rgba(0,0,0,0.25);
 }
 
-input, select{
+.btn{
   width:100%;
-  padding:12px;
-  margin:8px 0;
-  border-radius:10px;
-  border:1px solid #ccc;
-  font-size:16px;
-}
-
-button{
-  width:100%;
-  padding:14px;
-  margin-top:10px;
+  padding:18px;
+  margin:12px 0;
+  font-size:18px;
+  font-weight:700;
   border:none;
   border-radius:12px;
-  background:#203a43;
-  color:white;
-  font-size:16px;
-  font-weight:bold;
   cursor:pointer;
+  color:white;
+  transition:0.2s;
 }
 
-.whatsapp{
-  background:#25D366;
+.btn:active{
+  transform:scale(0.97);
 }
 
-.hidden{
-  display:none;
+.ara{
+  background:linear-gradient(135deg,#00c853,#009624);
+  font-size:22px;
+  padding:22px;
+}
+
+.acil{
+  background:linear-gradient(135deg,#ff1744,#d50000);
+}
+
+.cam{
+  background:linear-gradient(135deg,#2979ff,#1565c0);
+}
+
+.park{
+  background:linear-gradient(135deg,#ff9100,#e65100);
+}
+
+#mesaj{
+  margin-top:20px;
+  font-weight:bold;
+  color:#d50000;
 }
 
 </style>
@@ -72,164 +79,98 @@ button{
 
 <body>
 
-<div class="card" id="content">Yükleniyor...</div>
+<div id="container">
+
+<h2>Araç Sahibi İletişim</h2>
+
+<div id="plakaBox"></div>
+
+<div id="butonlar" style="display:none;">
+
+<button class="btn ara" onclick="araTel()">
+📞 SÜRÜCÜYÜ ARA
+</button>
+
+<button class="btn acil" onclick="mesajGonder('acil')">
+🚨 ACİL DURUM
+</button>
+
+<button class="btn cam" onclick="mesajGonder('cam')">
+🪟 CAM AÇIK
+</button>
+
+<button class="btn park" onclick="mesajGonder('park')">
+🚗 YANLIŞ PARK
+</button>
+
+</div>
+
+<div id="mesaj"></div>
+
+</div>
 
 <script>
 
-const API="https://script.google.com/macros/s/AKfycbwP2XFh7QZfuke1Vadz8HWMERXXyPL2H7eiz7QpnMSeLu57YoGmY63XUKSQDIQZCcxUGQ/exec";
-const params=new URLSearchParams(window.location.search);
-const id=params.get("id");
-const admin=params.get("admin");
+let telefon = "";
+let plaka = "";
 
-if(admin){
-  adminLogin();
-}
-else if(id){
-  kontrol();
-}
+const params = new URLSearchParams(window.location.search);
+plaka = params.get("id");
 
-function kontrol(){
-  fetch(`${API}?action=kontrol&id=${id}`)
-  .then(r=>r.json())
-  .then(d=>{
-    if(d.kayit){
-      kayitVar(d);
+if(plaka){
+  plaka = plaka.toUpperCase();
+  document.getElementById("plakaBox").innerText = plaka;
+
+  fetch("https://script.google.com/macros/s/AKfycbyyPdOZokUsufyaQC_YDYcjEsisjAeSTHHPYI_WNVg5RcMbOdfUnxJCHJGQhJ2lbEVXiQ/exec" + plaka)
+  .then(res => res.json())
+  .then(data => {
+
+    if(data.kayit){
+
+      if(data.aktif == "AKTIF"){
+
+        telefon = data.telefon;
+        document.getElementById("butonlar").style.display="block";
+
+      }else{
+        document.getElementById("mesaj").innerText = "Araç sahibi şu anda pasif durumda.";
+      }
+
     }else{
-      kayitYok();
+      document.getElementById("mesaj").innerText = "Bu plakaya ait kayıt bulunamadı.";
     }
+
+  })
+  .catch(()=>{
+    document.getElementById("mesaj").innerText="Sunucuya bağlanılamadı.";
   });
+
+}else{
+  document.getElementById("mesaj").innerText="Plaka parametresi yok.";
 }
 
-function kayitVar(d){
+function araTel(){
+  window.location.href = "tel:" + telefon;
+}
 
-  let butonlar="";
+function mesajGonder(tip){
 
-  if(d.durum=="aktif"){
+  let mesaj = "";
 
-    butonlar=`
-      <a class="whatsapp" target="_blank"
-      href="https://wa.me/9${d.telefon}?text=Aracınızın camı açık olabilir.">
-      🪟 Cam Açık
-      </a>
-
-      <a class="whatsapp" target="_blank"
-      href="https://wa.me/9${d.telefon}?text=Aracınız hatalı park etmiş olabilir.">
-      ⚠️ Hatalı Park
-      </a>
-
-      <a class="whatsapp" target="_blank"
-      href="https://wa.me/9${d.telefon}?text=Aracınızda acil durum olabilir.">
-      🚨 Acil Durum
-      </a>
-
-      <a href="tel:${d.telefon}">
-      🚗 Sürücüyü Ara
-      </a>
-    `;
+  if(tip=="acil"){
+    mesaj = "ACİL DURUM! " + plaka + " plakalı aracınızla ilgili acil bir durum var.";
   }
 
-  document.getElementById("content").innerHTML=`
-    <div class="plaka">${d.plaka}</div>
-    <p><b>Durum:</b> ${d.durum}</p>
-
-    ${butonlar}
-
-    <hr>
-    <input id="sifre" placeholder="Şifre">
-    <button onclick="durumDegistir()">Aktif/Pasif Değiştir</button>
-  `;
-}
-
-function durumDegistir(){
-  const sifre=document.getElementById("sifre").value;
-
-  fetch(`${API}?action=durumDegistir&id=${id}&sifre=${sifre}`)
-  .then(r=>r.json())
-  .then(d=>{
-    if(d.success){
-      location.reload();
-    }else{
-      alert("Şifre yanlış");
-    }
-  });
-}
-
-function kayitYok(){
-  document.getElementById("content").innerHTML=`
-    <h2>Kayıt Oluştur</h2>
-    <input id="plaka" placeholder="Plaka" style="text-transform:uppercase">
-    <input id="ad" placeholder="Ad Soyad">
-    <input id="telefon" placeholder="Telefon (5xxxxxxxxx)">
-    <input id="sifre" placeholder="Şifre">
-    <button onclick="kaydet()">Kaydet</button>
-  `;
-}
-
-function kaydet(){
-  const plaka=document.getElementById("plaka").value.toUpperCase();
-  const ad=document.getElementById("ad").value;
-  const telefon=document.getElementById("telefon").value;
-  const sifre=document.getElementById("sifre").value;
-
-  fetch(`${API}?action=kayit&id=${id}&plaka=${plaka}&ad=${ad}&telefon=${telefon}&sifre=${sifre}`)
-  .then(()=>location.reload());
-}
-
-function adminLogin(){
-  document.getElementById("content").innerHTML=`
-    <h2>Admin Giriş</h2>
-    <input type="password" id="adminSifre" placeholder="Admin Şifre">
-    <button onclick="adminKontrol()">Giriş Yap</button>
-  `;
-}
-
-function adminKontrol(){
-  const sifre=document.getElementById("adminSifre").value;
-  if(sifre=="1234"){
-    adminPanel();
-  }else{
-    alert("Yanlış şifre");
+  if(tip=="cam"){
+    mesaj = plaka + " plakalı aracınızın camı açık görünüyor.";
   }
-}
 
-function adminPanel(){
-  fetch(`${API}?action=adminListe`)
-  .then(r=>r.json())
-  .then(d=>{
+  if(tip=="park"){
+    mesaj = plaka + " plakalı aracınız hatalı park etmiş olabilir.";
+  }
 
-    let html="<h3>ADMIN PANEL</h3><table>";
-    html+="<tr><th>ID</th><th>Plaka</th><th>Tel</th><th>Durum</th><th>Kaydet</th></tr>";
-
-    d.liste.forEach(k=>{
-      html+=`
-      <tr>
-        <td>${k.id}</td>
-        <td><input id="plaka_${k.id}" value="${k.plaka}"></td>
-        <td><input id="tel_${k.id}" value="${k.telefon}"></td>
-        <td>
-          <select id="durum_${k.id}">
-            <option ${k.durum=="aktif"?"selected":""}>aktif</option>
-            <option ${k.durum=="pasif"?"selected":""}>pasif</option>
-          </select>
-        </td>
-        <td>
-          <button onclick="guncelle('${k.id}')">Kaydet</button>
-        </td>
-      </tr>`;
-    });
-
-    html+="</table>";
-    document.getElementById("content").innerHTML=html;
-  });
-}
-
-function guncelle(id){
-  const plaka=document.getElementById("plaka_"+id).value.toUpperCase();
-  const telefon=document.getElementById("tel_"+id).value;
-  const durum=document.getElementById("durum_"+id).value;
-
-  fetch(`${API}?action=adminGuncelle&id=${id}&plaka=${plaka}&telefon=${telefon}&durum=${durum}`)
-  .then(()=>alert("Güncellendi"));
+  let link = "https://wa.me/90" + telefon + "?text=" + encodeURIComponent(mesaj);
+  window.open(link,"_blank");
 }
 
 </script>
