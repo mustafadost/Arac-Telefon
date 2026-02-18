@@ -2,191 +2,177 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Araç İletişim</title>
+
 <style>
-
 body{
-font-family:Arial;
-background:#f4f4f4;
-padding:20px;
+  font-family:Arial;
+  background:#f4f4f4;
+  padding:20px;
+  margin:0;
 }
-
 h1{
-text-align:center;
-font-size:30px;
+  text-align:center;
+  font-size:32px;
 }
-
 input{
-width:100%;
-padding:12px;
-margin:8px 0;
-font-size:16px;
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  font-size:16px;
 }
-
 button{
-width:100%;
-padding:14px;
-margin:8px 0;
-font-size:16px;
-border:none;
-cursor:pointer;
-border-radius:6px;
+  width:100%;
+  padding:14px;
+  margin:8px 0;
+  font-size:16px;
+  border:none;
+  cursor:pointer;
+  border-radius:6px;
 }
-
 .primary{background:#007bff;color:white;}
 .red{background:#dc3545;color:white;}
 .blue{background:#007bff;color:white;}
 .gray{background:#6c757d;color:white;}
 
 .callBtn{
-background:#25D366;
-font-size:20px;
-padding:18px;
-font-weight:bold;
+  background:#25D366;
+  font-size:20px;
+  padding:18px;
+  font-weight:bold;
 }
 
 .link{
-text-align:center;
-margin-top:15px;
-color:blue;
-cursor:pointer;
+  text-align:center;
+  margin-top:15px;
+  color:blue;
+  cursor:pointer;
 }
-
 </style>
 </head>
+
 <body>
 
 <div id="content">Yükleniyor...</div>
 
 <script>
 
-const API="https://script.google.com/macros/s/AKfycbzEswAFvgzwSOP8UOAJIbwKPynn-zlya_SdSria6gsmn-4c6awBZpXaHrNXoY1AedWU/exec";
+const API="https://script.google.com/macros/s/AKfycbzI0BEP6YBaJpAyyKgM0zpbZ_-AjXR-5-ZIbhEHlKTmmCoVSl99dOcslcBnw1zvXCwhVA/exec";
 const id=new URLSearchParams(window.location.search).get("id");
 
+if(!id){
+  document.getElementById("content").innerHTML="QR Hatalı.";
+}else{
+  kontrol();
+}
+
 function normalizeTel(t){
-t=t.replace(/\D/g,"");
-if(t.startsWith("90")) t=t.slice(2);
-if(!t.startsWith("0")) t="0"+t;
-return t;
+  t=t.replace(/\D/g,"");
+  if(t.startsWith("90")) t=t.slice(2);
+  if(!t.startsWith("0")) t="0"+t;
+  return t;
 }
 
 function normalizePlaka(p){
-return p.toUpperCase().replace(/\s/g,"");
+  return p.toUpperCase().replace(/\s/g,"");
 }
 
 function kontrol(){
-
-fetch(API,{
-method:"POST",
-body:JSON.stringify({action:"kontrol",id:id})
-})
-.then(r=>r.json())
-.then(d=>{
-
-if(!d.kayit){
-kayitEkran();
-}else{
-if(d.durum=="pasif"){
-document.getElementById("content").innerHTML="<h2>Bu araç şu an pasif.</h2>";
-}else{
-menu(d.plaka,d.telefon);
-}
-}
-
-});
+  fetch(`${API}?action=kontrol&id=${id}`)
+  .then(r=>r.json())
+  .then(d=>{
+    if(!d.kayit){
+      kayitEkran();
+    }else{
+      if(d.durum=="pasif"){
+        document.getElementById("content").innerHTML=
+        "<h2>Bu araç şu an iletişime kapalı.</h2>";
+      }else{
+        menu(d.plaka,d.telefon);
+      }
+    }
+  })
+  .catch(()=>{
+    document.getElementById("content").innerHTML="Sunucuya bağlanılamadı.";
+  });
 }
 
 function kayitEkran(){
-document.getElementById("content").innerHTML=`
-<h2>Kayıt Oluştur</h2>
-<input id="plaka" placeholder="Plaka">
-<input id="ad" placeholder="Ad Soyad">
-<input id="telefon" placeholder="Telefon">
-<input id="sifre" type="password" placeholder="Şifre">
-<button class="primary" onclick="kaydet()">Kaydet</button>
-`;
+  document.getElementById("content").innerHTML=`
+  <h2>Kayıt Oluştur</h2>
+  <input id="plaka" placeholder="Plaka">
+  <input id="ad" placeholder="Ad Soyad">
+  <input id="telefon" placeholder="Telefon">
+  <input id="sifre" type="password" placeholder="Şifre">
+  <button class="primary" onclick="kaydet()">Kaydet</button>
+  `;
 }
 
 function kaydet(){
 
-let tel=normalizeTel(telefon.value);
-let pl=normalizePlaka(plaka.value);
+  let tel=normalizeTel(document.getElementById("telefon").value);
+  let pl=normalizePlaka(document.getElementById("plaka").value);
+  let ad=document.getElementById("ad").value;
+  let sifre=document.getElementById("sifre").value;
 
-fetch(API,{
-method:"POST",
-body:JSON.stringify({
-action:"kayit",
-id:id,
-plaka:pl,
-ad:ad.value,
-telefon:tel,
-sifre:sifre.value
-})
-})
-.then(r=>r.json())
-.then(d=>{
-if(d.success){
-alert("Kayıt tamamlandı");
-kontrol();
-}
-});
+  fetch(`${API}?action=kayit&id=${id}&plaka=${pl}&ad=${encodeURIComponent(ad)}&telefon=${tel}&sifre=${encodeURIComponent(sifre)}`)
+  .then(r=>r.json())
+  .then(d=>{
+    if(d.success){
+      alert("Kayıt tamamlandı.");
+      kontrol();
+    }
+  });
 }
 
 function menu(plaka,tel){
 
-let mesaj=(text)=>`https://wa.me/${tel}?text=${encodeURIComponent(text)}`;
+  let mesaj=(text)=>`https://wa.me/${tel}?text=${encodeURIComponent(text)}`;
 
-document.getElementById("content").innerHTML=`
-<h1>${plaka}</h1>
+  document.getElementById("content").innerHTML=`
+  <h1>${plaka}</h1>
 
-<button class="red" onclick="window.location='${mesaj("Acil durum nedeniyle aracınıza ulaşmaya çalışıyorum.")}'">🚨 Acil Durum</button>
+  <button class="red" onclick="window.location='${mesaj("Acil durum nedeniyle aracınıza ulaşmaya çalışıyorum.")}'">🚨 Acil Durum</button>
 
-<button class="blue" onclick="window.location='${mesaj("Aracınız yanlış park edilmiş.")}'">🚗 Yanlış Park</button>
+  <button class="blue" onclick="window.location='${mesaj("Aracınız yanlış park edilmiş.")}'">🚗 Yanlış Park</button>
 
-<button class="blue" onclick="window.location='${mesaj("Aracınızın camları açık kalmış.")}'">🌬 Camlar Açık</button>
+  <button class="blue" onclick="window.location='${mesaj("Aracınızın camları açık kalmış.")}'">🌬 Camlar Açık</button>
 
-<a href="tel:${tel}">
-<button class="callBtn">📞 HEMEN ARA</button>
-</a>
+  <a href="tel:${tel}">
+    <button class="callBtn">📞 HEMEN ARA</button>
+  </a>
 
-<div class="link" onclick="sahipGiris()">Araç Sahibi Girişi</div>
-`;
+  <div class="link" onclick="sahipGiris()">Araç Sahibi Girişi</div>
+  `;
 }
 
 function sahipGiris(){
-document.getElementById("content").innerHTML=`
-<h2>Araç Sahibi</h2>
-<input id="p2" placeholder="Plaka">
-<input id="s2" type="password" placeholder="Şifre">
-<button class="gray" onclick="durumDegistir()">Aktif / Pasif Değiştir</button>
-<button class="primary" onclick="kontrol()">Geri</button>
-`;
+  document.getElementById("content").innerHTML=`
+  <h2>Araç Sahibi</h2>
+  <input id="p2" placeholder="Plaka">
+  <input id="s2" type="password" placeholder="Şifre">
+  <button class="gray" onclick="durumDegistir()">Aktif / Pasif Değiştir</button>
+  <button class="primary" onclick="kontrol()">Geri</button>
+  `;
 }
 
 function durumDegistir(){
 
-let pl=normalizePlaka(p2.value);
+  let pl=normalizePlaka(document.getElementById("p2").value);
+  let sif=document.getElementById("s2").value;
 
-fetch(API,{
-method:"POST",
-body:JSON.stringify({
-action:"durum",
-plaka:pl,
-sifre:s2.value
-})
-})
-.then(r=>r.json())
-.then(d=>{
-if(d.success){
-alert("Yeni durum: "+d.yeni);
-kontrol();
-}else{
-alert("Bilgiler hatalı");
+  fetch(`${API}?action=durum&plaka=${pl}&sifre=${encodeURIComponent(sif)}`)
+  .then(r=>r.json())
+  .then(d=>{
+    if(d.success){
+      alert("Yeni durum: "+d.yeni);
+      kontrol();
+    }else{
+      alert("Bilgiler hatalı.");
+    }
+  });
 }
-});
-}
-
-kontrol();
 
 </script>
 
