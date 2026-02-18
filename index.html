@@ -1,87 +1,93 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Araç Bilgi</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Araç Sahibine Ulaş</title>
+
 <style>
-body{font-family:Arial;text-align:center;padding:40px}
-button{padding:10px 20px;margin-top:10px}
-input{padding:8px;margin:5px}
+body{
+  font-family:Arial, sans-serif;
+  background:#f2f4f7;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  margin:0;
+}
+.box{
+  background:white;
+  padding:30px;
+  border-radius:12px;
+  box-shadow:0 5px 20px rgba(0,0,0,0.1);
+  text-align:center;
+  width:90%;
+  max-width:400px;
+}
+button{
+  background:#25D366;
+  color:white;
+  border:none;
+  padding:15px 25px;
+  font-size:16px;
+  border-radius:8px;
+  cursor:pointer;
+  width:100%;
+}
+button:hover{
+  opacity:0.9;
+}
+.loading{
+  color:#555;
+}
+.error{
+  color:red;
+}
 </style>
 </head>
+
 <body>
 
-<div id="icerik">Yükleniyor...</div>
+<div class="box">
+  <h2>Araç Sahibine Ulaş</h2>
+  <div id="content" class="loading">Yükleniyor...</div>
+</div>
 
 <script>
-
-const API = "https://script.google.com/macros/s/AKfycbyAIX6nPAnTG3EVGlXyaLZURacHbWri7GTEexSwBw6ltEhPSO5OY5UPcZDFQ7VIv50iJg/exec";
 
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
 if(!id){
-  document.getElementById("icerik").innerHTML = "QR eksik";
+  document.getElementById("content").innerHTML =
+    "<div class='error'>Plaka parametresi bulunamadı.</div>";
 }else{
 
-fetch(API + "?id=" + id)
-.then(response => response.text())
-.then(text => {
+fetch("https://script.google.com/macros/s/AKfycbxxUYu11ujEg59ViirR2ZF-gVFbQXQdp_fnQ7UIt7xzk8N3OL8zsBRrQP3kBiPc3Mj0eA/exec?id=" + id)
+.then(response => response.json())
+.then(data => {
 
-  const data = JSON.parse(text);
+  if(data.success){
 
-  if(data.status === "sahiplen"){
-    document.getElementById("icerik").innerHTML = `
-      <h2>Etiketi Sahiplen</h2>
-      <input id="ad" placeholder="Adınız"><br>
-      <input id="tel" placeholder="Telefon"><br>
-      <button onclick="kaydet()">Kaydet</button>
-    `;
-  }
+    const mesaj = "Aracınızla ilgili size ulaşmak istiyorum.";
+    const whatsappLink =
+      "https://wa.me/" + data.telefon +
+      "?text=" + encodeURIComponent(mesaj);
 
-  else if(data.status === "profil"){
-    document.getElementById("icerik").innerHTML = `
-      <h2>${data.ad}</h2>
-      <a href="tel:${data.telefon}">📞 Ara</a><br><br>
-      <a href="https://wa.me/90${data.telefon.substring(1)}">WhatsApp</a>
-      <p>Okutma: ${data.okutma}</p>
-    `;
-  }
+    document.getElementById("content").innerHTML =
+      `<button onclick="window.location.href='${whatsappLink}'">
+        WhatsApp ile Mesaj Gönder
+      </button>`;
 
-  else if(data.status === "pasif"){
-    document.getElementById("icerik").innerHTML = "Bu kart pasif";
-  }
-
-  else{
-    document.getElementById("icerik").innerHTML = "QR sistemde yok";
+  }else{
+    document.getElementById("content").innerHTML =
+      "<div class='error'>Araç bulunamadı.</div>";
   }
 
 })
-.catch(err=>{
-  document.getElementById("icerik").innerHTML = "Bağlantı hatası";
-});
-
-}
-
-function kaydet(){
-
-const ad = document.getElementById("ad").value;
-const tel = document.getElementById("tel").value;
-
-fetch(API,{
-  method:"POST",
-  body:new URLSearchParams({
-    id:id,
-    ad:ad,
-    telefon:tel
-  })
-})
-.then(res=>res.text())
-.then(text=>{
-  const data = JSON.parse(text);
-  if(data.status==="tamam"){
-    location.reload();
-  }
+.catch(error => {
+  document.getElementById("content").innerHTML =
+    "<div class='error'>Sistem hatası oluştu.</div>";
 });
 
 }
