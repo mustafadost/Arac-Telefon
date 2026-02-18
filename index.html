@@ -2,78 +2,93 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Araç İletişim</title>
 
 <style>
 
 body{
-  font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg,#667eea,#764ba2);
+  margin:0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg,#1f4037,#99f2c8);
   display:flex;
   justify-content:center;
   align-items:center;
-  height:100vh;
-  margin:0;
+  min-height:100vh;
 }
 
 .card{
   background:white;
-  padding:30px;
-  border-radius:18px;
-  width:360px;
-  box-shadow:0 15px 40px rgba(0,0,0,0.25);
+  width:95%;
+  max-width:420px;
+  padding:25px;
+  border-radius:20px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.3);
   text-align:center;
 }
 
 .plaka{
-  background: linear-gradient(90deg,#0f2027,#203a43,#2c5364);
+  background:black;
   color:white;
-  font-size:26px;
+  font-size:32px;
   font-weight:bold;
-  padding:14px;
+  padding:15px;
   border-radius:12px;
-  letter-spacing:3px;
   margin-bottom:15px;
+  letter-spacing:3px;
 }
 
 input{
   width:100%;
-  padding:10px;
+  padding:12px;
   margin:8px 0;
-  border-radius:8px;
-  border:1px solid #ddd;
+  border-radius:10px;
+  border:1px solid #ccc;
+  font-size:16px;
 }
 
 button{
   width:100%;
-  padding:10px;
+  padding:14px;
   margin-top:10px;
   border:none;
-  border-radius:8px;
-  background:#667eea;
+  border-radius:12px;
+  background:#1f4037;
   color:white;
+  font-size:16px;
   font-weight:bold;
   cursor:pointer;
 }
 
 button:hover{
-  background:#5a67d8;
+  opacity:0.9;
+}
+
+a{
+  display:block;
+  background:#28a745;
+  color:white;
+  padding:14px;
+  border-radius:12px;
+  text-decoration:none;
+  margin-top:10px;
+  font-weight:bold;
 }
 
 table{
   width:100%;
   border-collapse:collapse;
   margin-top:15px;
+  font-size:13px;
 }
 
 th,td{
   border:1px solid #ddd;
-  padding:8px;
-  font-size:13px;
+  padding:6px;
 }
 
 th{
-  background:#f5f5f5;
+  background:#eee;
 }
 
 </style>
@@ -85,17 +100,19 @@ th{
 
 <script>
 
-const API="https://script.google.com/macros/s/AKfycbyWI9Ydcs1MW4V9JdiO0e8RSYcdAGn5HcgOQZoWpLxd4QSy3sQtxAQkfCruFSQ9VrgsAQ/exec";
+const API="https://script.google.com/macros/s/AKfycbyu4dsauLIqeyclaBLA-KqGi0z0RxdI8X2KHgbMFJbQGKhqVh5lPLWYSV5koC7NS9cfDg/exec";
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 const admin = params.get("admin");
 
-if(admin=="1"){
+if(admin=="1234"){
   adminPanel();
-}else if(id){
+}
+else if(id){
   kontrol();
-}else{
-  document.getElementById("content").innerHTML="QR Hatalı.";
+}
+else{
+  document.getElementById("content").innerHTML="Geçersiz QR.";
 }
 
 function kontrol(){
@@ -107,17 +124,14 @@ function kontrol(){
     }else{
       kayitYok();
     }
-  })
-  .catch(()=>{
-    document.getElementById("content").innerHTML="Sunucuya bağlanılamadı.";
   });
 }
 
 function kayitVar(d){
   document.getElementById("content").innerHTML=`
     <div class="plaka">${d.plaka}</div>
-    <p><b>Telefon:</b> ${d.telefon}</p>
     <p><b>Durum:</b> ${d.durum}</p>
+    <a href="tel:${d.telefon}">ARA</a>
   `;
 }
 
@@ -142,7 +156,7 @@ function kaydet(){
   fetch(`${API}?action=kayit&id=${id}&plaka=${plaka}&ad=${ad}&telefon=${telefon}&sifre=${sifre}`)
   .then(r=>r.json())
   .then(()=>{
-    alert("Kayıt başarılı");
+    alert("Kayıt Başarılı");
     location.reload();
   });
 }
@@ -151,15 +165,14 @@ function adminPanel(){
   fetch(`${API}?action=adminListe`)
   .then(r=>r.json())
   .then(d=>{
-    let html="<h3>Admin Panel</h3>";
+    let html="<h3>ADMIN PANEL</h3>";
     html+="<table>";
-    html+="<tr><th>ID</th><th>Plaka</th><th>Ad</th><th>Telefon</th><th>Durum</th></tr>";
+    html+="<tr><th>ID</th><th>Plaka</th><th>Telefon</th><th>Durum</th></tr>";
 
     d.liste.forEach(k=>{
       html+=`<tr>
         <td>${k.id}</td>
         <td>${k.plaka}</td>
-        <td>${k.ad}</td>
         <td>${k.telefon}</td>
         <td>${k.durum}</td>
       </tr>`;
