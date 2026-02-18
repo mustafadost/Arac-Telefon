@@ -9,8 +9,8 @@
 
 body{
   margin:0;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(135deg,#1f4037,#99f2c8);
+  font-family: Arial;
+  background: linear-gradient(135deg,#141e30,#243b55);
   display:flex;
   justify-content:center;
   align-items:center;
@@ -20,40 +20,41 @@ body{
 .card{
   background:white;
   width:95%;
-  max-width:420px;
-  padding:25px;
+  max-width:450px;
+  padding:30px;
   border-radius:20px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.3);
+  box-shadow:0 15px 40px rgba(0,0,0,0.4);
   text-align:center;
 }
 
 .plaka{
   background:black;
   color:white;
-  font-size:30px;
-  font-weight:bold;
-  padding:15px;
+  font-size:34px;
+  padding:18px;
   border-radius:12px;
   margin-bottom:15px;
-  letter-spacing:3px;
+  letter-spacing:4px;
 }
 
 input, select{
   width:100%;
-  padding:10px;
-  margin:6px 0;
-  border-radius:8px;
+  padding:12px;
+  margin:8px 0;
+  border-radius:10px;
   border:1px solid #ccc;
+  font-size:16px;
 }
 
 button{
   width:100%;
-  padding:12px;
-  margin-top:8px;
+  padding:14px;
+  margin-top:10px;
   border:none;
-  border-radius:10px;
-  background:#1f4037;
+  border-radius:12px;
+  background:#243b55;
   color:white;
+  font-size:16px;
   font-weight:bold;
   cursor:pointer;
 }
@@ -62,10 +63,10 @@ a{
   display:block;
   background:#28a745;
   color:white;
-  padding:12px;
-  border-radius:10px;
+  padding:14px;
+  border-radius:12px;
   text-decoration:none;
-  margin-top:8px;
+  margin-top:10px;
   font-weight:bold;
 }
 
@@ -89,7 +90,7 @@ th,td{
 
 <script>
 
-const API="https://script.google.com/macros/s/AKfycbyG54dwXCEukGmiJCNbFIuTqQB-i7uqlXlFomKJ9Bpwwa6-rbW_18mdkliAPo3seXucPg/exec";
+const API="https://script.google.com/macros/s/AKfycbzN8DKSutXvIVU_HdqYDO-CLW0YSxHWceQFzEWkV3kx9KmPghMfiXGP_PBvwTk0omQXUg/exec";
 const params=new URLSearchParams(window.location.search);
 const id=params.get("id");
 const admin=params.get("admin");
@@ -99,9 +100,6 @@ if(admin=="1234"){
 }
 else if(id){
   kontrol();
-}
-else{
-  document.getElementById("content").innerHTML="Geçersiz QR";
 }
 
 function kontrol(){
@@ -123,24 +121,30 @@ function kayitVar(d){
 
     <a href="tel:${d.telefon}">🚗 SÜRÜCÜYÜ ARA</a>
 
-    <button onclick="alert('Cam açık bildirimi gönderildi')">
-      🪟 Cam Açık
-    </button>
-
-    <button onclick="alert('Hatalı park bildirimi gönderildi')">
-      ⚠️ Hatalı Park
-    </button>
-
-    <button onclick="alert('Acil durum bildirimi gönderildi')">
-      🚨 Acil Durum
-    </button>
+    <input id="sifre" placeholder="Şifrenizi girin">
+    <button onclick="durumDegistir()">Durumu Değiştir</button>
   `;
+}
+
+function durumDegistir(){
+  const sifre=document.getElementById("sifre").value;
+
+  fetch(`${API}?action=durumDegistir&id=${id}&sifre=${sifre}`)
+  .then(r=>r.json())
+  .then(d=>{
+    if(d.success){
+      alert("Durum değişti: "+d.yeni);
+      location.reload();
+    }else{
+      alert("Şifre yanlış");
+    }
+  });
 }
 
 function kayitYok(){
   document.getElementById("content").innerHTML=`
-    <h3>Kayıt Oluştur</h3>
-    <input id="plaka" placeholder="Plaka">
+    <h2>Kayıt Oluştur</h2>
+    <input id="plaka" placeholder="Plaka" style="text-transform:uppercase">
     <input id="ad" placeholder="Ad Soyad">
     <input id="telefon" placeholder="Telefon">
     <input id="sifre" placeholder="Şifre">
@@ -150,17 +154,13 @@ function kayitYok(){
 
 function kaydet(){
 
-  const plaka=document.getElementById("plaka").value;
+  const plaka=document.getElementById("plaka").value.toUpperCase();
   const ad=document.getElementById("ad").value;
   const telefon=document.getElementById("telefon").value;
   const sifre=document.getElementById("sifre").value;
 
   fetch(`${API}?action=kayit&id=${id}&plaka=${plaka}&ad=${ad}&telefon=${telefon}&sifre=${sifre}`)
-  .then(r=>r.json())
-  .then(()=>{
-    alert("Kayıt başarılı");
-    location.reload();
-  });
+  .then(()=>location.reload());
 }
 
 function adminPanel(){
@@ -173,11 +173,10 @@ function adminPanel(){
     html+="<tr><th>ID</th><th>Plaka</th><th>Tel</th><th>Durum</th><th>İşlem</th></tr>";
 
     d.liste.forEach(k=>{
-
       html+=`
       <tr>
         <td>${k.id}</td>
-        <td>${k.plaka}</td>
+        <td><input id="plaka_${k.id}" value="${k.plaka}"></td>
         <td><input id="tel_${k.id}" value="${k.telefon}"></td>
         <td>
           <select id="durum_${k.id}">
@@ -187,7 +186,6 @@ function adminPanel(){
         </td>
         <td>
           <button onclick="guncelle('${k.id}')">Kaydet</button>
-          <button onclick="sil('${k.id}')">Sil</button>
         </td>
       </tr>`;
     });
@@ -199,20 +197,12 @@ function adminPanel(){
 
 function guncelle(id){
 
+  const plaka=document.getElementById("plaka_"+id).value.toUpperCase();
   const telefon=document.getElementById("tel_"+id).value;
   const durum=document.getElementById("durum_"+id).value;
 
-  fetch(`${API}?action=adminGuncelle&id=${id}&telefon=${telefon}&durum=${durum}`)
+  fetch(`${API}?action=adminGuncelle&id=${id}&plaka=${plaka}&telefon=${telefon}&durum=${durum}`)
   .then(()=>alert("Güncellendi"));
-}
-
-function sil(id){
-
-  if(confirm("Silmek istiyor musunuz?")){
-
-    fetch(`${API}?action=adminSil&id=${id}`)
-    .then(()=>location.reload());
-  }
 }
 
 </script>
