@@ -9,8 +9,8 @@
 
 body{
   margin:0;
-  font-family: Arial;
-  background: linear-gradient(135deg,#141e30,#243b55);
+  font-family:Arial;
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
   display:flex;
   justify-content:center;
   align-items:center;
@@ -20,17 +20,17 @@ body{
 .card{
   background:white;
   width:95%;
-  max-width:450px;
+  max-width:480px;
   padding:30px;
   border-radius:20px;
-  box-shadow:0 15px 40px rgba(0,0,0,0.4);
+  box-shadow:0 20px 50px rgba(0,0,0,0.5);
   text-align:center;
 }
 
 .plaka{
   background:black;
   color:white;
-  font-size:34px;
+  font-size:36px;
   padding:18px;
   border-radius:12px;
   margin-bottom:15px;
@@ -52,33 +52,19 @@ button{
   margin-top:10px;
   border:none;
   border-radius:12px;
-  background:#243b55;
+  background:#203a43;
   color:white;
   font-size:16px;
   font-weight:bold;
   cursor:pointer;
 }
 
-a{
-  display:block;
-  background:#28a745;
-  color:white;
-  padding:14px;
-  border-radius:12px;
-  text-decoration:none;
-  margin-top:10px;
-  font-weight:bold;
+.whatsapp{
+  background:#25D366;
 }
 
-table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:13px;
-}
-
-th,td{
-  border:1px solid #ddd;
-  padding:6px;
+.hidden{
+  display:none;
 }
 
 </style>
@@ -90,13 +76,13 @@ th,td{
 
 <script>
 
-const API="https://script.google.com/macros/s/AKfycbzN8DKSutXvIVU_HdqYDO-CLW0YSxHWceQFzEWkV3kx9KmPghMfiXGP_PBvwTk0omQXUg/exec";
+const API="https://script.google.com/macros/s/AKfycbwP2XFh7QZfuke1Vadz8HWMERXXyPL2H7eiz7QpnMSeLu57YoGmY63XUKSQDIQZCcxUGQ/exec";
 const params=new URLSearchParams(window.location.search);
 const id=params.get("id");
 const admin=params.get("admin");
 
-if(admin=="1234"){
-  adminPanel();
+if(admin){
+  adminLogin();
 }
 else if(id){
   kontrol();
@@ -115,14 +101,42 @@ function kontrol(){
 }
 
 function kayitVar(d){
+
+  let butonlar="";
+
+  if(d.durum=="aktif"){
+
+    butonlar=`
+      <a class="whatsapp" target="_blank"
+      href="https://wa.me/9${d.telefon}?text=Aracınızın camı açık olabilir.">
+      🪟 Cam Açık
+      </a>
+
+      <a class="whatsapp" target="_blank"
+      href="https://wa.me/9${d.telefon}?text=Aracınız hatalı park etmiş olabilir.">
+      ⚠️ Hatalı Park
+      </a>
+
+      <a class="whatsapp" target="_blank"
+      href="https://wa.me/9${d.telefon}?text=Aracınızda acil durum olabilir.">
+      🚨 Acil Durum
+      </a>
+
+      <a href="tel:${d.telefon}">
+      🚗 Sürücüyü Ara
+      </a>
+    `;
+  }
+
   document.getElementById("content").innerHTML=`
     <div class="plaka">${d.plaka}</div>
     <p><b>Durum:</b> ${d.durum}</p>
 
-    <a href="tel:${d.telefon}">🚗 SÜRÜCÜYÜ ARA</a>
+    ${butonlar}
 
-    <input id="sifre" placeholder="Şifrenizi girin">
-    <button onclick="durumDegistir()">Durumu Değiştir</button>
+    <hr>
+    <input id="sifre" placeholder="Şifre">
+    <button onclick="durumDegistir()">Aktif/Pasif Değiştir</button>
   `;
 }
 
@@ -133,7 +147,6 @@ function durumDegistir(){
   .then(r=>r.json())
   .then(d=>{
     if(d.success){
-      alert("Durum değişti: "+d.yeni);
       location.reload();
     }else{
       alert("Şifre yanlış");
@@ -146,14 +159,13 @@ function kayitYok(){
     <h2>Kayıt Oluştur</h2>
     <input id="plaka" placeholder="Plaka" style="text-transform:uppercase">
     <input id="ad" placeholder="Ad Soyad">
-    <input id="telefon" placeholder="Telefon">
+    <input id="telefon" placeholder="Telefon (5xxxxxxxxx)">
     <input id="sifre" placeholder="Şifre">
     <button onclick="kaydet()">Kaydet</button>
   `;
 }
 
 function kaydet(){
-
   const plaka=document.getElementById("plaka").value.toUpperCase();
   const ad=document.getElementById("ad").value;
   const telefon=document.getElementById("telefon").value;
@@ -163,14 +175,30 @@ function kaydet(){
   .then(()=>location.reload());
 }
 
-function adminPanel(){
+function adminLogin(){
+  document.getElementById("content").innerHTML=`
+    <h2>Admin Giriş</h2>
+    <input type="password" id="adminSifre" placeholder="Admin Şifre">
+    <button onclick="adminKontrol()">Giriş Yap</button>
+  `;
+}
 
+function adminKontrol(){
+  const sifre=document.getElementById("adminSifre").value;
+  if(sifre=="1234"){
+    adminPanel();
+  }else{
+    alert("Yanlış şifre");
+  }
+}
+
+function adminPanel(){
   fetch(`${API}?action=adminListe`)
   .then(r=>r.json())
   .then(d=>{
 
     let html="<h3>ADMIN PANEL</h3><table>";
-    html+="<tr><th>ID</th><th>Plaka</th><th>Tel</th><th>Durum</th><th>İşlem</th></tr>";
+    html+="<tr><th>ID</th><th>Plaka</th><th>Tel</th><th>Durum</th><th>Kaydet</th></tr>";
 
     d.liste.forEach(k=>{
       html+=`
@@ -196,7 +224,6 @@ function adminPanel(){
 }
 
 function guncelle(id){
-
   const plaka=document.getElementById("plaka_"+id).value.toUpperCase();
   const telefon=document.getElementById("tel_"+id).value;
   const durum=document.getElementById("durum_"+id).value;
