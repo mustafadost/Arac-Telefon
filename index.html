@@ -2,95 +2,110 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Araç İletişim</title>
 
 <style>
+
 body{
-  font-family:Arial;
-  background:#f4f4f4;
-  padding:20px;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg,#667eea,#764ba2);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
   margin:0;
 }
-h1{
+
+.card{
+  background:white;
+  padding:30px;
+  border-radius:18px;
+  width:360px;
+  box-shadow:0 15px 40px rgba(0,0,0,0.25);
   text-align:center;
-  font-size:32px;
 }
+
+.plaka{
+  background: linear-gradient(90deg,#0f2027,#203a43,#2c5364);
+  color:white;
+  font-size:26px;
+  font-weight:bold;
+  padding:14px;
+  border-radius:12px;
+  letter-spacing:3px;
+  margin-bottom:15px;
+}
+
 input{
   width:100%;
-  padding:12px;
+  padding:10px;
   margin:8px 0;
-  font-size:16px;
+  border-radius:8px;
+  border:1px solid #ddd;
 }
+
 button{
   width:100%;
-  padding:14px;
-  margin:8px 0;
-  font-size:16px;
+  padding:10px;
+  margin-top:10px;
   border:none;
-  cursor:pointer;
-  border-radius:6px;
-}
-.primary{background:#007bff;color:white;}
-.red{background:#dc3545;color:white;}
-.blue{background:#007bff;color:white;}
-.gray{background:#6c757d;color:white;}
-
-.callBtn{
-  background:#25D366;
-  font-size:20px;
-  padding:18px;
+  border-radius:8px;
+  background:#667eea;
+  color:white;
   font-weight:bold;
-}
-
-.link{
-  text-align:center;
-  margin-top:15px;
-  color:blue;
   cursor:pointer;
 }
+
+button:hover{
+  background:#5a67d8;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:15px;
+}
+
+th,td{
+  border:1px solid #ddd;
+  padding:8px;
+  font-size:13px;
+}
+
+th{
+  background:#f5f5f5;
+}
+
 </style>
 </head>
 
 <body>
 
-<div id="content">Yükleniyor...</div>
+<div class="card" id="content">Yükleniyor...</div>
 
 <script>
 
-const API="https://script.google.com/macros/s/AKfycbyu4QtI3rUCXvZMUFwsDFgg9OlFtfbZk7KB8AMkXrwmVLNC7vsSyj-L44Ds1z9a9aZkww/exec";
-const id=new URLSearchParams(window.location.search).get("id");
+const API="https://script.google.com/macros/s/AKfycbyWI9Ydcs1MW4V9JdiO0e8RSYcdAGn5HcgOQZoWpLxd4QSy3sQtxAQkfCruFSQ9VrgsAQ/exec";
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+const admin = params.get("admin");
 
-if(!id){
-  document.getElementById("content").innerHTML="QR Hatalı.";
-}else{
+if(admin=="1"){
+  adminPanel();
+}else if(id){
   kontrol();
-}
-
-function normalizeTel(t){
-  t=t.replace(/\D/g,"");
-  if(t.startsWith("90")) t=t.slice(2);
-  if(!t.startsWith("0")) t="0"+t;
-  return t;
-}
-
-function normalizePlaka(p){
-  return p.toUpperCase().replace(/\s/g,"");
+}else{
+  document.getElementById("content").innerHTML="QR Hatalı.";
 }
 
 function kontrol(){
   fetch(`${API}?action=kontrol&id=${id}`)
   .then(r=>r.json())
   .then(d=>{
-    if(!d.kayit){
-      kayitEkran();
+    if(d.kayit){
+      kayitVar(d);
     }else{
-      if(d.durum=="pasif"){
-        document.getElementById("content").innerHTML=
-        "<h2>Bu araç şu an iletişime kapalı.</h2>";
-      }else{
-        menu(d.plaka,d.telefon);
-      }
+      kayitYok();
     }
   })
   .catch(()=>{
@@ -98,79 +113,60 @@ function kontrol(){
   });
 }
 
-function kayitEkran(){
+function kayitVar(d){
   document.getElementById("content").innerHTML=`
-  <h2>Kayıt Oluştur</h2>
-  <input id="plaka" placeholder="Plaka">
-  <input id="ad" placeholder="Ad Soyad">
-  <input id="telefon" placeholder="Telefon">
-  <input id="sifre" type="password" placeholder="Şifre">
-  <button class="primary" onclick="kaydet()">Kaydet</button>
+    <div class="plaka">${d.plaka}</div>
+    <p><b>Telefon:</b> ${d.telefon}</p>
+    <p><b>Durum:</b> ${d.durum}</p>
+  `;
+}
+
+function kayitYok(){
+  document.getElementById("content").innerHTML=`
+    <h3>Kayıt Oluştur</h3>
+    <input id="plaka" placeholder="Plaka">
+    <input id="ad" placeholder="Ad Soyad">
+    <input id="telefon" placeholder="Telefon">
+    <input id="sifre" placeholder="Şifre">
+    <button onclick="kaydet()">Kaydet</button>
   `;
 }
 
 function kaydet(){
 
-  let tel=normalizeTel(document.getElementById("telefon").value);
-  let pl=normalizePlaka(document.getElementById("plaka").value);
-  let ad=document.getElementById("ad").value;
-  let sifre=document.getElementById("sifre").value;
+  const plaka=document.getElementById("plaka").value;
+  const ad=document.getElementById("ad").value;
+  const telefon=document.getElementById("telefon").value;
+  const sifre=document.getElementById("sifre").value;
 
-  fetch(`${API}?action=kayit&id=${id}&plaka=${pl}&ad=${encodeURIComponent(ad)}&telefon=${tel}&sifre=${encodeURIComponent(sifre)}`)
+  fetch(`${API}?action=kayit&id=${id}&plaka=${plaka}&ad=${ad}&telefon=${telefon}&sifre=${sifre}`)
   .then(r=>r.json())
-  .then(d=>{
-    if(d.success){
-      alert("Kayıt tamamlandı.");
-      kontrol();
-    }
+  .then(()=>{
+    alert("Kayıt başarılı");
+    location.reload();
   });
 }
 
-function menu(plaka,tel){
-
-  let mesaj=(text)=>`https://wa.me/${tel}?text=${encodeURIComponent(text)}`;
-
-  document.getElementById("content").innerHTML=`
-  <h1>${plaka}</h1>
-
-  <button class="red" onclick="window.location='${mesaj("Acil durum nedeniyle aracınıza ulaşmaya çalışıyorum.")}'">🚨 Acil Durum</button>
-
-  <button class="blue" onclick="window.location='${mesaj("Aracınız yanlış park edilmiş.")}'">🚗 Yanlış Park</button>
-
-  <button class="blue" onclick="window.location='${mesaj("Aracınızın camları açık kalmış.")}'">🌬 Camlar Açık</button>
-
-  <a href="tel:${tel}">
-    <button class="callBtn">📞 HEMEN ARA</button>
-  </a>
-
-  <div class="link" onclick="sahipGiris()">Araç Sahibi Girişi</div>
-  `;
-}
-
-function sahipGiris(){
-  document.getElementById("content").innerHTML=`
-  <h2>Araç Sahibi</h2>
-  <input id="p2" placeholder="Plaka">
-  <input id="s2" type="password" placeholder="Şifre">
-  <button class="gray" onclick="durumDegistir()">Aktif / Pasif Değiştir</button>
-  <button class="primary" onclick="kontrol()">Geri</button>
-  `;
-}
-
-function durumDegistir(){
-
-  let pl=normalizePlaka(document.getElementById("p2").value);
-  let sif=document.getElementById("s2").value;
-
-  fetch(`${API}?action=durum&plaka=${pl}&sifre=${encodeURIComponent(sif)}`)
+function adminPanel(){
+  fetch(`${API}?action=adminListe`)
   .then(r=>r.json())
   .then(d=>{
-    if(d.success){
-      alert("Yeni durum: "+d.yeni);
-      kontrol();
-    }else{
-      alert("Bilgiler hatalı.");
-    }
+    let html="<h3>Admin Panel</h3>";
+    html+="<table>";
+    html+="<tr><th>ID</th><th>Plaka</th><th>Ad</th><th>Telefon</th><th>Durum</th></tr>";
+
+    d.liste.forEach(k=>{
+      html+=`<tr>
+        <td>${k.id}</td>
+        <td>${k.plaka}</td>
+        <td>${k.ad}</td>
+        <td>${k.telefon}</td>
+        <td>${k.durum}</td>
+      </tr>`;
+    });
+
+    html+="</table>";
+    document.getElementById("content").innerHTML=html;
   });
 }
 
@@ -178,4 +174,3 @@ function durumDegistir(){
 
 </body>
 </html>
-
