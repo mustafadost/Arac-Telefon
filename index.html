@@ -1,47 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Araç İletişim</title>
-
 <style>
-body{
-  font-family:Arial;
-  text-align:center;
-  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-  color:white;
-  padding:20px;
-}
-.card{
-  background:white;
-  color:black;
-  border-radius:15px;
-  padding:20px;
-  max-width:400px;
-  margin:auto;
-}
-.plaka{
-  font-size:32px;
-  font-weight:bold;
-  margin-bottom:20px;
-}
-button{
-  width:100%;
-  padding:15px;
-  margin:10px 0;
-  border:none;
-  border-radius:10px;
-  font-size:16px;
-  cursor:pointer;
-}
-.ara{background:#28a745;color:white;font-size:18px;}
-.diger{background:#007bff;color:white;}
-input{
-  width:100%;
-  padding:12px;
-  margin:10px 0;
-}
+body{font-family:Arial;text-align:center;background:#1f2937;color:white;padding:20px}
+.card{background:white;color:black;padding:20px;border-radius:15px;max-width:400px;margin:auto}
+button{width:100%;padding:14px;margin:8px 0;border:none;border-radius:8px;font-size:16px}
+.ara{background:#16a34a;color:white;font-size:18px}
+.diger{background:#2563eb;color:white}
+.giris{background:#111827;color:white}
+input{width:100%;padding:10px;margin:5px 0}
+.plaka{font-size:28px;font-weight:bold}
 </style>
 </head>
 <body>
@@ -49,32 +18,95 @@ input{
 <div id="app"></div>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycbz9kyJyiI3dQSSP3W5ltOUabPRV2uHarMYPsxwSGrI53KMMRLC5jGSjb4JBcUixdwnCew/exec";
+const API="https://script.google.com/macros/s/AKfycbwvnEYNcXV9K85zwODo7UybBDn5wYBONCUY_I5d6YKfjoxTSjSO1_DlCEVT3bx44T4ZXQ/exec";
+const qr=new URLSearchParams(location.search).get("qr");
 
-const qr = new URLSearchParams(location.search).get("qr");
+if(!qr){ app.innerHTML="QR yok"; }
 
-if(!qr){
-  document.getElementById("app").innerHTML="QR parametresi yok";
-}else{
-  fetch(API+"?qr="+qr)
-  .then(r=>r.json())
-  .then(data=>{
-    if(!data.kayit){
-      kayitForm();
-    }else{
-      if(data.durum=="AKTIF"){
-        aktifEkran(data);
-      }else{
-        pasifEkran();
-      }
-    }
+fetch(API+"?qr="+qr)
+.then(r=>r.json())
+.then(data=>{
+  if(!data.kayit){ kayitForm(); }
+  else{ ziyaretci(data); }
+});
+
+function ziyaretci(data){
+app.innerHTML=`
+<div class="card">
+<div class="plaka">${data.plaka}</div>
+${data.durum=="AKTIF" ? `
+<button class="ara" onclick="ara('${data.telefon}')">Sürücüyü Ara</button>
+<button class="diger" onclick="wp('${data.telefon}','Camınız açık')">Cam Açık</button>
+<button class="diger" onclick="wp('${data.telefon}','Acil durum')">Acil</button>
+<button class="diger" onclick="wp('${data.telefon}','Yanlış park')">Yanlış Park</button>
+`:`<h3>Şu an pasif</h3>`}
+<hr>
+<button class="giris" onclick="panelGiris()">Araç Sahibi Girişi</button>
+<button class="giris" onclick="adminGiris()">Admin Girişi</button>
+</div>`;
+}
+
+function panelGiris(){
+app.innerHTML=`
+<div class="card">
+<h3>Şifre Girin</h3>
+<input id="sifre">
+<button onclick="panelLogin()">Giriş</button>
+</div>`;
+}
+
+function panelLogin(){
+fetch(API+`?qr=${qr}&panelLogin=1&sifre=`+sifre.value)
+.then(r=>r.json())
+.then(d=>{
+ if(d.panel){
+  app.innerHTML=`
+  <div class="card">
+  <div class="plaka">${d.plaka}</div>
+  <button onclick="durumDegistir('${d.durum}')">
+  ${d.durum=="AKTIF"?"Pasif Yap":"Aktif Yap"}
+  </button>
+  </div>`;
+ }else{ alert("Şifre hatalı"); }
+});
+}
+
+function durumDegistir(mevcut){
+let yeni=mevcut=="AKTIF"?"PASIF":"AKTIF";
+fetch(API,{
+method:"POST",
+body:JSON.stringify({islem:"durum",qr:qr,sifre:sifre.value,durum:yeni})
+}).then(()=>location.reload());
+}
+
+function adminGiris(){
+app.innerHTML=`
+<div class="card">
+<h3>Admin Şifre</h3>
+<input id="asifre">
+<button onclick="adminLogin()">Giriş</button>
+</div>`;
+}
+
+function adminLogin(){
+fetch(API+`?adminLogin=1&sifre=`+asifre.value)
+.then(r=>r.json())
+.then(d=>{
+ if(d.admin){
+  let html="<div class='card'><h3>Admin Panel</h3>";
+  d.data.forEach(x=>{
+   html+=`<p>${x[0]} - ${x[1]} - ${x[4]}</p>`;
   });
+  html+="</div>";
+  app.innerHTML=html;
+ }else alert("Hatalı");
+});
 }
 
 function kayitForm(){
-document.getElementById("app").innerHTML=`
+app.innerHTML=`
 <div class="card">
-<h2>Kayıt Ol</h2>
+<h3>Kayıt Ol</h3>
 <input id="plaka" placeholder="Plaka">
 <input id="tel" placeholder="Telefon">
 <input id="sifre" placeholder="Şifre">
@@ -95,31 +127,8 @@ sifre:sifre.value
 }).then(()=>location.reload());
 }
 
-function aktifEkran(data){
-document.getElementById("app").innerHTML=`
-<div class="card">
-<div class="plaka">${data.plaka}</div>
-<button class="ara" onclick="ara('${data.telefon}')">Sürücüyü Ara</button>
-<button class="diger" onclick="wp('${data.telefon}','Camınız açık')">Cam Açık</button>
-<button class="diger" onclick="wp('${data.telefon}','Acil durum')">Acil</button>
-<button class="diger" onclick="wp('${data.telefon}','Yanlış park')">Yanlış Park</button>
-</div>`;
-}
-
-function pasifEkran(){
-document.getElementById("app").innerHTML=`
-<div class="card">
-<h2>Bu araç şu an pasif durumda</h2>
-</div>`;
-}
-
-function ara(tel){
-location.href="tel:+90"+tel;
-}
-
-function wp(tel,msg){
-location.href=`https://wa.me/90${tel}?text=${encodeURIComponent(msg)}`;
-}
+function ara(tel){location.href="tel:+90"+tel;}
+function wp(tel,msg){location.href=`https://wa.me/90${tel}?text=${encodeURIComponent(msg)}`;}
 </script>
 </body>
 </html>
