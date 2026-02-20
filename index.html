@@ -2,90 +2,220 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Araç QR Sistem</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Araç İletişim Sistemi</title>
+
 <style>
-body{font-family:Arial;text-align:center;padding:20px;background:#f4f6f9;}
-.plaka{font-size:40px;font-weight:bold;margin:20px;}
-button{padding:10px 20px;margin:5px;border:none;border-radius:8px;cursor:pointer;}
-.aktif{background:#28a745;color:white;}
-.pasif{background:#dc3545;color:white;}
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:linear-gradient(135deg,#1e3c72,#2a5298);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+  color:white;
+}
+
+.container{
+  width:95%;
+  max-width:420px;
+  background:white;
+  color:#333;
+  border-radius:18px;
+  padding:25px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.3);
+  text-align:center;
+}
+
+h1{
+  margin-top:0;
+}
+
+input{
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border-radius:10px;
+  border:1px solid #ccc;
+  font-size:16px;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:10px;
+  font-size:16px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.btn-primary{
+  background:#2a5298;
+  color:white;
+}
+
+.btn-danger{
+  background:#d9534f;
+  color:white;
+}
+
+.btn-success{
+  background:#28a745;
+  color:white;
+}
+
+.btn-warning{
+  background:#f0ad4e;
+  color:white;
+}
+
+.plaka{
+  font-size:28px;
+  font-weight:bold;
+  letter-spacing:2px;
+  margin:15px 0;
+  padding:10px;
+  background:#1e3c72;
+  color:white;
+  border-radius:12px;
+}
+
+.hidden{
+  display:none;
+}
+
+.admin-item{
+  background:#f2f2f2;
+  padding:10px;
+  margin:10px 0;
+  border-radius:10px;
+  text-align:left;
+  font-size:14px;
+}
 </style>
 </head>
+
 <body>
 
-<div id="app"></div>
+<div class="container">
+
+<div id="anaEkran">
+<h1>Araç İletişim</h1>
+<div id="sonuc"></div>
+<button class="btn-primary" onclick="adminEkran()">Admin Giriş</button>
+</div>
+
+<div id="kayitEkran" class="hidden">
+<h2>Yeni Kayıt</h2>
+<input type="text" id="plaka" placeholder="Plaka">
+<input type="text" id="telefon" placeholder="Telefon">
+<button class="btn-success" onclick="kaydet()">Kaydet</button>
+</div>
+
+<div id="adminLogin" class="hidden">
+<h2>Admin Giriş</h2>
+<input type="password" id="adminSifre" placeholder="Şifre">
+<button class="btn-primary" onclick="adminKontrol()">Giriş Yap</button>
+</div>
+
+<div id="adminPanel" class="hidden">
+<h2>Admin Panel</h2>
+<div id="liste"></div>
+</div>
+
+</div>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycbzAg_J4fnHZNEiEJHax3YlwQQjmZT7mUEZwPZrL9mNaUFzCmcXACZONj_wzPcfFTv5b8g/exec";
 
-const params=new URLSearchParams(window.location.search);
-const qr=params.get("qr");
-const app=document.getElementById("app");
+let urlParams = new URLSearchParams(window.location.search);
+let qr = urlParams.get("qr");
 
-if(qr){
-  fetch(API+"?action=get&qr="+qr)
-    .then(r=>r.json())
-    .then(data=>{
-
-      if(!data.kayit){
-
-        app.innerHTML=`
-          <h2>Yeni Araç Kaydı</h2>
-          <input id="plaka" placeholder="Plaka"><br><br>
-          <input id="telefon" placeholder="Telefon"><br><br>
-          <button onclick="register('${data.qr}')">Kaydet</button>
-        `;
-
+window.onload = function(){
+  if(qr){
+    google.script.run.withSuccessHandler(function(res){
+      if(res.kayit){
+        document.getElementById("sonuc").innerHTML =
+          "<div class='plaka'>"+res.plaka+"</div>" +
+          "<p>Durum: <b>"+res.durum+"</b></p>" +
+          "<a href='"+ 
+          "https://wa.me/90"+res.telefon.substring(1)+
+          "?text="+encodeURIComponent("ACİL DURUM! "+res.plaka+" plakalı aracınızla ilgili acil bir durum bulunmaktadır.")+
+          "' target='_blank'><button class='btn-danger'>ACİL MESAJ GÖNDER</button></a>";
       }else{
-
-        showMain(data);
+        document.getElementById("anaEkran").classList.add("hidden");
+        document.getElementById("kayitEkran").classList.remove("hidden");
       }
+    }).qrKontrol(qr);
+  }
+}
+
+function kaydet(){
+  let plaka = document.getElementById("plaka").value;
+  let telefon = document.getElementById("telefon").value;
+
+  google.script.run.withSuccessHandler(function(){
+    alert("Kayıt tamamlandı");
+    location.reload();
+  }).yeniKayit(qr,plaka,telefon);
+}
+
+function adminEkran(){
+  document.getElementById("anaEkran").classList.add("hidden");
+  document.getElementById("adminLogin").classList.remove("hidden");
+}
+
+function adminKontrol(){
+  let sifre = document.getElementById("adminSifre").value;
+  google.script.run.withSuccessHandler(function(res){
+    if(res){
+      document.getElementById("adminLogin").classList.add("hidden");
+      document.getElementById("adminPanel").classList.remove("hidden");
+      kayitlariGetir();
+    }else{
+      alert("Şifre yanlış");
+    }
+  }).adminGiris(sifre);
+}
+
+function kayitlariGetir(){
+  google.script.run.withSuccessHandler(function(liste){
+    let html="";
+    liste.forEach(function(item){
+      html += "<div class='admin-item'>";
+      html += "<b>"+item.plaka+"</b><br>";
+      html += "Telefon: "+item.telefon+"<br>";
+      html += "Durum: "+item.durum+"<br>";
+      html += "<button class='btn-warning' onclick='durum("+item.satir+")'>Aktif/Pasif</button>";
+      html += "<button class='btn-primary' onclick='guncelle("+item.satir+")'>Güncelle</button>";
+      html += "<button class='btn-danger' onclick='sil("+item.satir+")'>Sil</button>";
+      html += "</div>";
     });
+    document.getElementById("liste").innerHTML = html;
+  }).tumKayitlar();
 }
 
-function showMain(data){
-
-  let btnClass=data.durum==="aktif"?"aktif":"pasif";
-
-  app.innerHTML=`
-    <div class="plaka">${data.plaka}</div>
-    <p>Durum: <b>${data.durum}</b></p>
-    <button class="${btnClass}" onclick="toggle('${data.plaka}')">
-      Aktif / Pasif
-    </button>
-  `;
+function durum(satir){
+  google.script.run.withSuccessHandler(kayitlariGetir).durumDegistir(satir);
 }
 
-function register(qr){
-
-  const plaka=document.getElementById("plaka").value;
-  const telefon=document.getElementById("telefon").value;
-
-  fetch(API+"?action=register&qr="+qr+"&plaka="+plaka+"&telefon="+telefon)
-    .then(r=>r.json())
-    .then(d=>{
-      if(d.success){
-        alert("Kayıt tamamlandı");
-        location.reload();
-      }
-    });
+function sil(satir){
+  if(confirm("Silmek istiyor musunuz?")){
+    google.script.run.withSuccessHandler(kayitlariGetir).kayitSil(satir);
+  }
 }
 
-function toggle(plaka){
-
-  const sifre=prompt("Şifre girin:");
-  if(!sifre)return;
-
-  fetch(API+"?action=toggle&plaka="+plaka+"&password="+sifre)
-    .then(r=>r.json())
-    .then(d=>{
-      if(d.success){
-        location.reload();
-      }else{
-        alert("Hatalı şifre");
-      }
-    });
+function guncelle(satir){
+  let plaka = prompt("Yeni plaka:");
+  let telefon = prompt("Yeni telefon:");
+  if(plaka && telefon){
+    google.script.run.withSuccessHandler(kayitlariGetir)
+      .kayitGuncelle(satir,plaka,telefon);
+  }
 }
+
 </script>
 
 </body>
