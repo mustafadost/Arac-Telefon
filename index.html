@@ -6,12 +6,7 @@
 <title>Araç QR Sistemi</title>
 
 <style>
-
 *{box-sizing:border-box;}
-
-html,body{
-  height:100%;
-}
 
 body{
   font-family:Arial, sans-serif;
@@ -19,6 +14,7 @@ body{
   display:flex;
   justify-content:center;
   align-items:center;
+  min-height:100vh;
   margin:0;
   padding:20px;
 }
@@ -28,19 +24,23 @@ body{
   padding:30px;
   border-radius:25px;
   width:100%;
-  max-width:520px;   /* mobilde daha büyük */
+  max-width:520px;
   box-shadow:0 25px 60px rgba(0,0,0,0.35);
 }
 
 .plaka{
-  font-size:36px;
+  font-size:42px;
   font-weight:900;
   text-align:center;
-  border:4px solid #1d2671;
-  padding:18px;
-  border-radius:15px;
+  padding:20px;
+  border-radius:18px;
   margin-bottom:25px;
-  letter-spacing:2px;
+  letter-spacing:3px;
+  background:linear-gradient(145deg,#ffffff,#f1f1f1);
+  box-shadow:
+    0 8px 20px rgba(0,0,0,0.25),
+    inset 0 2px 6px rgba(255,255,255,0.8);
+  border:5px solid #1d2671;
 }
 
 button{
@@ -54,25 +54,11 @@ button{
   cursor:pointer;
 }
 
-.ara{
-  background:#28a745;
-  color:white;
-  font-size:22px;
-}
-
+.ara{background:#28a745;color:white;font-size:22px;}
 .acil{background:#dc3545;color:white;}
 .cam{background:#ffc107;}
 .park{background:#17a2b8;color:white;}
 .toggle{background:#6f42c1;color:white;}
-
-input{
-  width:100%;
-  padding:16px;
-  margin-top:14px;
-  border-radius:12px;
-  border:1px solid #ccc;
-  font-size:16px;
-}
 
 .links{
   margin-top:20px;
@@ -92,87 +78,64 @@ input{
   padding:60px 0;
   font-size:18px;
 }
-
 </style>
-
-
 </head>
+
 <body>
-<div class="card" id="app"></div>
+<div class="card" id="app">
+  <div class="loader">Yükleniyor...</div>
+</div>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycbwh2J-Z6Qpyrc3rb5jVzQ0DVyiBMb9phYeAqH4fRfCZmtEW2_9duX1WsW6D1o_lEqVXng/exec";
+const API="https://script.google.com/macros/s/AKfycbzsEpoYkx9HnRCKhz8sUWn9XuuSUJrKcHrkKWLXjqF4Uk_KiGY3vxnQdaQcnmU0Hkcy/exec";
 const qr=new URLSearchParams(location.search).get("qr");
 const app=document.getElementById("app");
+
 let currentPlaka="";
 let currentTelefon="";
 let currentDurum="";
 
-if(!qr){ app.innerHTML="<h3>QR bulunamadı</h3>"; }
-
 fetch(API+"?action=get&qr="+qr)
 .then(r=>r.json())
 .then(d=>{
-  if(!d.kayit){
-    app.innerHTML=`
-      <h3>Kayıt Ol</h3>
-      <input id="plaka" placeholder="Plaka">
-      <input id="telefon" placeholder="Telefon">
-      <input id="sifre" placeholder="Şifre">
-      <button onclick="register()">Kaydet</button>
-    `;
-  }else{
-    if(d.durum=="pasif"){
-      app.innerHTML=`<div class="plaka">${d.plaka}</div>
-      <button onclick="login()">Araç Sahibi Giriş</button>`;
-    }else{
-      currentPlaka=d.plaka;
-      currentTelefon=d.telefon;
-      currentDurum=d.durum;
-      showButtons();
-    }
-  }
+  currentPlaka=d.plaka;
+  currentTelefon=d.telefon;
+  currentDurum=d.durum;
+
+  showMain();
 });
 
-function register(){
-  fetch(API+"?action=register",{
-    method:"POST",
-    body:JSON.stringify({
-      qr:qr,
-      plaka:document.getElementById("plaka").value,
-      telefon:document.getElementById("telefon").value,
-      sifre:document.getElementById("sifre").value
-    })
-  }).then(()=>location.reload());
-}
+function showMain(){
 
-function login(){
-  const sifre=prompt("Şifre giriniz:");
-  fetch(API+"?action=login",{
-    method:"POST",
-    body:JSON.stringify({qr:qr,sifre:sifre})
-  })
-  .then(r=>r.json())
-  .then(d=>{
-    if(d.success){
-      currentPlaka=d.plaka;
-      currentTelefon=d.telefon;
-      currentDurum=d.durum;
-      showButtons(true);
-    }else{
-      alert("Şifre hatalı");
-    }
-  });
-}
+  let durumRenk = currentDurum=="aktif" ? "#28a745" : "#dc3545";
+  let durumYazi = currentDurum=="aktif" ? "AKTİF" : "PASİF";
 
-function showButtons(owner=false){
+  let buttons="";
+
+  if(currentDurum=="aktif"){
+    buttons=`
+      <button class="ara" onclick="mesaj('ara')">Sürücüyü Ara</button>
+      <button class="acil" onclick="mesaj('acil')">Acil</button>
+      <button class="cam" onclick="mesaj('cam')">Cam Açık</button>
+      <button class="park" onclick="mesaj('park')">Yanlış Park</button>
+    `;
+  }
+
   app.innerHTML=`
     <div class="plaka">${currentPlaka}</div>
-    <button class="ara" onclick="mesaj('ara')">Sürücüyü Ara</button>
-    <button class="acil" onclick="mesaj('acil')">Acil</button>
-    <button class="cam" onclick="mesaj('cam')">Cam Açık</button>
-    <button class="park" onclick="mesaj('park')">Yanlış Park</button>
-    ${owner?'<button class="toggle" onclick="toggle()">Aktif/Pasif Yap</button>':''}
+
+    <div style="text-align:center;font-weight:bold;font-size:18px;margin-bottom:15px;color:${durumRenk};">
+      DURUM: ${durumYazi}
+    </div>
+
+    ${buttons}
+
+    <button class="toggle" onclick="toggle()">Aktif / Pasif Yap</button>
+
+    <div class="links">
+      <span onclick="ownerLogin()">Araç Sahibi Giriş</span> |
+      <span onclick="adminLogin()">Admin Giriş</span>
+    </div>
   `;
 }
 
@@ -189,10 +152,35 @@ function mesaj(tip){
   if(tip=="cam") m=`Bilgilendirme: ${currentPlaka} plakalı aracınızın camı açık görünüyor.`;
   if(tip=="park") m=`Bilgilendirme: ${currentPlaka} plakalı aracınız hatalı park etmiş olabilir.`;
   if(tip=="ara") m=`${currentPlaka} plakalı aracınızla ilgili iletişim kurulmak isteniyor.`;
+
   window.location.href="https://wa.me/90"+currentTelefon+"?text="+encodeURIComponent(m);
+}
+
+function ownerLogin(){
+  const sifre=prompt("Şifre giriniz:");
+  fetch(API+"?action=login",{
+    method:"POST",
+    body:JSON.stringify({qr:qr,sifre:sifre})
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    if(d.success){
+      currentDurum=d.durum;
+      showMain();
+    }else{
+      alert("Şifre hatalı");
+    }
+  });
+}
+
+function adminLogin(){
+  const sifre=prompt("Admin şifresi:");
+  if(sifre==="123456"){
+    window.open(API+"?action=adminList","_blank");
+  }else{
+    alert("Admin şifre hatalı");
+  }
 }
 </script>
 </body>
 </html>
-
-
