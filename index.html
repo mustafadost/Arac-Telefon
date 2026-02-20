@@ -136,7 +136,7 @@ if(plaka){
 
     if(data.kayit){
 
-      if(data.aktif == "AKTIF"){
+      if(data.aktif && data.aktif.toUpperCase() == "AKTIF"){
 
         telefon = data.telefon;
         document.getElementById("butonlar").style.display="block";
@@ -187,4 +187,5 @@ function mesajGonder(tip){
 
 </body>
 </html>
+
 
