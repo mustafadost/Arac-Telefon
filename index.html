@@ -2,11 +2,16 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Araç QR Sistemi</title>
 
 <style>
 
 *{box-sizing:border-box;}
+
+html,body{
+  height:100%;
+}
 
 body{
   font-family:Arial, sans-serif;
@@ -14,32 +19,25 @@ body{
   display:flex;
   justify-content:center;
   align-items:center;
-  min-height:100vh;
   margin:0;
   padding:20px;
 }
 
 .card{
   background:#fff;
-  padding:35px;
+  padding:30px;
   border-radius:25px;
   width:100%;
-  max-width:480px;   /* büyüttük */
-  box-shadow:0 20px 50px rgba(0,0,0,0.35);
-  animation:fade 0.3s ease;
-}
-
-@keyframes fade{
-  from{opacity:0; transform:translateY(10px);}
-  to{opacity:1; transform:translateY(0);}
+  max-width:520px;   /* mobilde daha büyük */
+  box-shadow:0 25px 60px rgba(0,0,0,0.35);
 }
 
 .plaka{
-  font-size:34px;   /* büyüttük */
+  font-size:36px;
   font-weight:900;
   text-align:center;
   border:4px solid #1d2671;
-  padding:15px;
+  padding:18px;
   border-radius:15px;
   margin-bottom:25px;
   letter-spacing:2px;
@@ -47,25 +45,19 @@ body{
 
 button{
   width:100%;
-  padding:18px;   /* büyüttük */
-  margin-top:14px;
+  padding:20px;
+  margin-top:15px;
   border:none;
   border-radius:15px;
   font-weight:bold;
-  font-size:16px;
+  font-size:18px;
   cursor:pointer;
-  transition:0.2s;
-}
-
-button:active{
-  transform:scale(0.97);
 }
 
 .ara{
   background:#28a745;
   color:white;
-  font-size:20px;   /* daha büyük */
-  padding:22px;     /* daha büyük */
+  font-size:22px;
 }
 
 .acil{background:#dc3545;color:white;}
@@ -75,7 +67,7 @@ button:active{
 
 input{
   width:100%;
-  padding:14px;
+  padding:16px;
   margin-top:14px;
   border-radius:12px;
   border:1px solid #ccc;
@@ -85,7 +77,7 @@ input{
 .links{
   margin-top:20px;
   text-align:center;
-  font-size:14px;
+  font-size:15px;
 }
 
 .links span{
@@ -97,12 +89,12 @@ input{
 
 .loader{
   text-align:center;
-  font-weight:bold;
   padding:60px 0;
   font-size:18px;
 }
 
 </style>
+
 
 </head>
 <body>
@@ -202,4 +194,5 @@ function mesaj(tip){
 </script>
 </body>
 </html>
+
 
