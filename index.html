@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Araç İletişim Sistemi</title>
 
 <style>
@@ -11,7 +10,7 @@
 body{
   margin:0;
   font-family: Arial, sans-serif;
-  background: linear-gradient(135deg,#f5f7fa,#e4e8f0);
+  background: linear-gradient(135deg,#eef2f7,#d9e2ec);
   text-align:center;
   padding:20px;
 }
@@ -22,15 +21,15 @@ body{
 }
 
 #plakaBox{
-  font-size:38px;
+  font-size:42px;
   font-weight:900;
   letter-spacing:4px;
-  margin:25px 0;
-  padding:18px;
-  border-radius:14px;
+  margin:30px 0;
+  padding:20px;
+  border-radius:16px;
   background: linear-gradient(135deg,#111,#333);
   color:#fff;
-  box-shadow:0 6px 18px rgba(0,0,0,0.25);
+  box-shadow:0 8px 20px rgba(0,0,0,0.25);
 }
 
 .btn{
@@ -40,7 +39,7 @@ body{
   font-size:18px;
   font-weight:700;
   border:none;
-  border-radius:12px;
+  border-radius:14px;
   cursor:pointer;
   color:white;
   transition:0.2s;
@@ -52,7 +51,7 @@ body{
 
 .ara{
   background:linear-gradient(135deg,#00c853,#009624);
-  font-size:22px;
+  font-size:24px;
   padding:22px;
 }
 
@@ -72,6 +71,13 @@ body{
   margin-top:20px;
   font-weight:bold;
   color:#d50000;
+  font-size:16px;
+}
+
+.loading{
+  font-size:18px;
+  font-weight:bold;
+  margin-top:20px;
 }
 
 </style>
@@ -83,7 +89,7 @@ body{
 
 <h2>Araç Sahibi İletişim</h2>
 
-<div id="plakaBox"></div>
+<div id="plakaBox">Yükleniyor...</div>
 
 <div id="butonlar" style="display:none;">
 
@@ -111,6 +117,8 @@ body{
 
 <script>
 
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyLbv-VNs0CkTsBWul4ebhgJGt6dbawbwBxAxzTle7OVWGtKRjXBs0QgOEdNE0saYssKQ/exec";
+
 let telefon = "";
 let plaka = "";
 
@@ -118,10 +126,11 @@ const params = new URLSearchParams(window.location.search);
 plaka = params.get("id");
 
 if(plaka){
-  plaka = plaka.toUpperCase();
+
+  plaka = plaka.toUpperCase().replace(/\s/g,'');
   document.getElementById("plakaBox").innerText = plaka;
 
-  fetch("https://script.google.com/macros/s/AKfycbyLbv-VNs0CkTsBWul4ebhgJGt6dbawbwBxAxzTle7OVWGtKRjXBs0QgOEdNE0saYssKQ/exec" + plaka)
+  fetch(WEB_APP_URL + "?id=" + plaka)
   .then(res => res.json())
   .then(data => {
 
@@ -131,6 +140,7 @@ if(plaka){
 
         telefon = data.telefon;
         document.getElementById("butonlar").style.display="block";
+        document.getElementById("mesaj").innerText="";
 
       }else{
         document.getElementById("mesaj").innerText = "Araç sahibi şu anda pasif durumda.";
@@ -146,7 +156,7 @@ if(plaka){
   });
 
 }else{
-  document.getElementById("mesaj").innerText="Plaka parametresi yok.";
+  document.getElementById("plakaBox").innerText="Plaka bulunamadı";
 }
 
 function araTel(){
@@ -177,4 +187,3 @@ function mesajGonder(tip){
 
 </body>
 </html>
-
