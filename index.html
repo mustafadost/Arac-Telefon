@@ -56,6 +56,7 @@ input{width:100%;padding:10px;margin-top:10px;border-radius:8px;border:1px solid
 <script>
 const API="https://script.google.com/macros/s/AKfycbymbghTMAjhqRud-OxnaVwMpPgVgHwcZKycK-piZuLQ_3DJB9VBfeJVUOPrCIRJ6AWDAQ/exec";
 const qr=new URLSearchParams(location.search).get("qr");
+const app = document.getElementById("app");
 
 function yukle(){
 fetch(API+"?action=get&qr="+qr)
@@ -137,5 +138,6 @@ yukle();
 </script>
 </body>
 </html>
+
 
 
