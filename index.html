@@ -140,11 +140,23 @@ function showMain(){
 }
 
 function toggle(){
-  fetch(API+"?action=toggle",{
-    method:"POST",
-    body:JSON.stringify({plaka:currentPlaka})
-  }).then(()=>location.reload());
+
+  const sifre = prompt("Durumu değiştirmek için şifre girin:");
+
+  if(!sifre) return;
+
+  fetch(API+"?action=toggle&plaka="+currentPlaka+"&password="+sifre)
+    .then(r=>r.json())
+    .then(d=>{
+      if(d.success){
+        currentDurum = d.yeni;
+        showMain();
+      }else{
+        alert("Hatalı şifre!");
+      }
+    });
 }
+
 
 function mesaj(tip){
   let m="";
@@ -184,3 +196,4 @@ function adminLogin(){
 </script>
 </body>
 </html>
+
