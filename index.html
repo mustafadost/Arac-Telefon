@@ -1,112 +1,84 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Araç İletişim</title>
-
 <style>
 body{
-  margin:0;
-  font-family:Arial;
-  background:linear-gradient(135deg,#1e293b,#0f172a);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
+margin:0;
+font-family:Arial;
+background:linear-gradient(135deg,#1e293b,#0f172a);
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
 }
-
 .card{
-  width:380px;
-  max-width:95%;
-  background:#f8f9fb;
-  border-radius:20px;
-  padding:25px;
-  text-align:center;
-  box-shadow:0 20px 40px rgba(0,0,0,0.3);
+width:380px;
+max-width:95%;
+background:#f8f9fb;
+border-radius:20px;
+padding:25px;
+text-align:center;
+box-shadow:0 20px 40px rgba(0,0,0,0.3);
 }
-
 .plaka{
-  border:3px solid black;
-  padding:10px;
-  font-size:28px;
-  font-weight:900;
-  border-radius:12px;
-  margin-bottom:20px;
+border:3px solid black;
+padding:10px;
+font-size:28px;
+font-weight:900;
+border-radius:12px;
+margin-bottom:20px;
 }
-
 button{
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:12px;
-  margin-top:12px;
-  font-size:16px;
-  font-weight:600;
-  cursor:pointer;
-  transition:.2s;
+width:100%;
+padding:14px;
+border:none;
+border-radius:12px;
+margin-top:12px;
+font-size:16px;
+font-weight:600;
+cursor:pointer;
+transition:.2s;
 }
-
-button:hover{
-  transform:translateY(-3px);
-}
-
-.call{
-  background:#00c853;
-  color:white;
-  font-size:18px;
-}
-
-.blue{
-  background:#2962ff;
-  color:white;
-}
-
-.bottom{
-  display:flex;
-  gap:10px;
-}
-
-.small{
-  background:#111;
-  color:white;
-  font-size:13px;
-}
+button:hover{transform:translateY(-3px);}
+.call{background:#00c853;color:white;font-size:18px;}
+.blue{background:#2962ff;color:white;}
+.bottom{display:flex;gap:10px;margin-top:15px;}
+.small{background:#111;color:white;font-size:13px;}
+input{width:100%;padding:10px;margin-top:10px;border-radius:8px;border:1px solid #ccc;}
 </style>
 </head>
 <body>
 
-<div class="card" id="main"></div>
+<div class="card" id="app"></div>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycbyyHqY9VJvg1LyKjNOPkzyt2lw01QPEwj5yP2Y7qubLi8-ttHszHLPUKLCHgBw2d9YWqw/exec";
-
-const params=new URLSearchParams(window.location.search);
-const plaka=(params.get("id")||"").toUpperCase();
+const API="https://script.google.com/macros/s/AKfycbx59P9jcqroV1ojouNaXp0YOj06c7RgOjvgorZRJ4AOaJ5EN_LVAItgCNKN-5SH_Aprew/exec";
+const qr=new URLSearchParams(location.search).get("qr");
 
 function yukle(){
-fetch(API+"?action=get&id="+plaka)
+fetch(API+"?action=get&qr="+qr)
 .then(r=>r.json())
 .then(d=>{
 if(!d.kayit){
-document.getElementById("main").innerHTML=`
+app.innerHTML=`
 <h3>Kayıt Ol</h3>
-<input id="tel" placeholder="Telefon"><br>
-<input id="sifre" placeholder="Şifre"><br>
+<input id="plaka" placeholder="Plaka">
+<input id="tel" placeholder="Telefon">
+<input id="sifre" placeholder="Şifre">
 <button onclick="kaydet()">Kaydet</button>`;
 }else{
-
 let butonlar="";
-if(d.aktif==="aktif"){
+if(d.durum==="aktif"){
 butonlar=`
 <button class="call" onclick="ara('${d.telefon}')">Sürücüyü Ara</button>
 <button class="blue" onclick="mesaj('${d.telefon}','Cam açık')">Cam Açık</button>
 <button class="blue" onclick="mesaj('${d.telefon}','Acil durum')">Acil</button>
 <button class="blue" onclick="mesaj('${d.telefon}','Yanlış park')">Yanlış Park</button>`;
 }
-
-document.getElementById("main").innerHTML=`
-<div class="plaka">${plaka}</div>
+app.innerHTML=`
+<div class="plaka">${d.plaka}</div>
 ${butonlar}
 <div class="bottom">
 <button class="small" onclick="sahip()">Araç Sahibi</button>
@@ -117,29 +89,25 @@ ${butonlar}
 }
 
 function kaydet(){
+let plaka=document.getElementById("plaka").value.toUpperCase();
 let tel=document.getElementById("tel").value.replace(/^0/,"");
 let sifre=document.getElementById("sifre").value;
-
-fetch(API+`?action=register&id=${plaka}&telefon=${tel}&sifre=${sifre}`)
+fetch(API+`?action=register&qr=${qr}&plaka=${plaka}&telefon=${tel}&sifre=${sifre}`)
 .then(()=>yukle());
 }
 
-function ara(tel){
-window.location.href="tel:+90"+tel;
-}
-
+function ara(tel){window.location.href="tel:+90"+tel;}
 function mesaj(tel,metin){
-window.location.href=
-"https://wa.me/90"+tel+"?text="+encodeURIComponent(metin);
+window.location.href="https://wa.me/90"+tel+"?text="+encodeURIComponent(metin);
 }
 
 function sahip(){
 let sifre=prompt("Şifre:");
-fetch(API+`?action=login&id=${plaka}&sifre=${sifre}`)
+fetch(API+`?action=login&qr=${qr}&sifre=${sifre}`)
 .then(r=>r.json())
 .then(d=>{
 if(!d.hata){
-fetch(API+`?action=toggle&id=${plaka}`)
+fetch(API+`?action=toggle&qr=${qr}`)
 .then(()=>yukle());
 }else alert("Şifre Hatalı");
 });
@@ -147,24 +115,25 @@ fetch(API+`?action=toggle&id=${plaka}`)
 
 function admin(){
 let sifre=prompt("Admin Şifre:");
-fetch(API+`?action=admin&sifre=${sifre}`)
+fetch(API+`?action=adminLogin&sifre=${sifre}`)
 .then(r=>r.json())
 .then(d=>{
 if(d.hata) return alert("Hatalı");
-
+fetch(API+`?action=adminData&sifre=${sifre}`)
+.then(r=>r.json())
+.then(data=>{
 let html="<h3>Admin Panel</h3>";
-d.data.slice(1).forEach(r=>{
-html+=`
-<div style="border:1px solid #ccc;padding:10px;margin:5px">
-${r[0]} - ${r[1]} - ${r[2]}
+data.data.slice(1).forEach(r=>{
+html+=`<div style="border:1px solid #ccc;padding:8px;margin:5px">
+${r[0]} - ${r[1]} - ${r[3]}
 </div>`;
 });
-document.getElementById("main").innerHTML=html;
+app.innerHTML=html;
+});
 });
 }
 
 yukle();
 </script>
-
 </body>
 </html>
