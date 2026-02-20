@@ -5,47 +5,105 @@
 <title>Araç QR Sistemi</title>
 
 <style>
+
+*{box-sizing:border-box;}
+
 body{
-  font-family:Arial;
+  font-family:Arial, sans-serif;
   background:linear-gradient(135deg,#1d2671,#c33764);
   display:flex;
   justify-content:center;
   align-items:center;
-  height:100vh;
+  min-height:100vh;
   margin:0;
+  padding:20px;
 }
+
 .card{
   background:#fff;
-  padding:30px;
-  border-radius:20px;
-  width:380px;
-  box-shadow:0 15px 40px rgba(0,0,0,0.3);
+  padding:35px;
+  border-radius:25px;
+  width:100%;
+  max-width:480px;   /* büyüttük */
+  box-shadow:0 20px 50px rgba(0,0,0,0.35);
+  animation:fade 0.3s ease;
 }
+
+@keyframes fade{
+  from{opacity:0; transform:translateY(10px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
 .plaka{
-  font-size:28px;
+  font-size:34px;   /* büyüttük */
   font-weight:900;
   text-align:center;
-  border:3px solid #1d2671;
-  padding:12px;
-  border-radius:12px;
-  margin-bottom:20px;
+  border:4px solid #1d2671;
+  padding:15px;
+  border-radius:15px;
+  margin-bottom:25px;
+  letter-spacing:2px;
 }
+
 button{
   width:100%;
-  padding:14px;
-  margin-top:10px;
+  padding:18px;   /* büyüttük */
+  margin-top:14px;
   border:none;
-  border-radius:12px;
+  border-radius:15px;
   font-weight:bold;
+  font-size:16px;
   cursor:pointer;
+  transition:0.2s;
 }
-.ara{background:#28a745;color:white;font-size:18px;padding:18px;}
+
+button:active{
+  transform:scale(0.97);
+}
+
+.ara{
+  background:#28a745;
+  color:white;
+  font-size:20px;   /* daha büyük */
+  padding:22px;     /* daha büyük */
+}
+
 .acil{background:#dc3545;color:white;}
 .cam{background:#ffc107;}
 .park{background:#17a2b8;color:white;}
 .toggle{background:#6f42c1;color:white;}
-input{width:100%;padding:10px;margin-top:10px;border-radius:8px;border:1px solid #ccc;}
+
+input{
+  width:100%;
+  padding:14px;
+  margin-top:14px;
+  border-radius:12px;
+  border:1px solid #ccc;
+  font-size:16px;
+}
+
+.links{
+  margin-top:20px;
+  text-align:center;
+  font-size:14px;
+}
+
+.links span{
+  cursor:pointer;
+  color:#1d2671;
+  font-weight:bold;
+  margin:0 12px;
+}
+
+.loader{
+  text-align:center;
+  font-weight:bold;
+  padding:60px 0;
+  font-size:18px;
+}
+
 </style>
+
 </head>
 <body>
 <div class="card" id="app"></div>
@@ -144,3 +202,4 @@ function mesaj(tip){
 </script>
 </body>
 </html>
+
