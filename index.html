@@ -142,7 +142,6 @@ function showMain(){
 function toggle(){
 
   const sifre = prompt("Durumu değiştirmek için şifre girin:");
-
   if(!sifre) return;
 
   fetch(API+"?action=toggle&plaka="+currentPlaka+"&password="+sifre)
@@ -152,10 +151,11 @@ function toggle(){
         currentDurum = d.yeni;
         showMain();
       }else{
-        alert("Hatalı şifre!");
+        alert(d.message);
       }
     });
 }
+
 
 
 function mesaj(tip){
@@ -196,4 +196,5 @@ function adminLogin(){
 </script>
 </body>
 </html>
+
 
