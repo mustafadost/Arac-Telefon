@@ -2,191 +2,124 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Araç İletişim Sistemi</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Araç İletişim</title>
 
 <style>
-
 body{
-  margin:0;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(135deg,#eef2f7,#d9e2ec);
+  font-family:Arial;
   text-align:center;
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  color:white;
   padding:20px;
 }
-
-#container{
-  max-width:500px;
+.card{
+  background:white;
+  color:black;
+  border-radius:15px;
+  padding:20px;
+  max-width:400px;
   margin:auto;
 }
-
-#plakaBox{
-  font-size:42px;
-  font-weight:900;
-  letter-spacing:4px;
-  margin:30px 0;
-  padding:20px;
-  border-radius:16px;
-  background: linear-gradient(135deg,#111,#333);
-  color:#fff;
-  box-shadow:0 8px 20px rgba(0,0,0,0.25);
+.plaka{
+  font-size:32px;
+  font-weight:bold;
+  margin-bottom:20px;
 }
-
-.btn{
+button{
   width:100%;
-  padding:18px;
-  margin:12px 0;
-  font-size:18px;
-  font-weight:700;
+  padding:15px;
+  margin:10px 0;
   border:none;
-  border-radius:14px;
-  cursor:pointer;
-  color:white;
-  transition:0.2s;
-}
-
-.btn:active{
-  transform:scale(0.97);
-}
-
-.ara{
-  background:linear-gradient(135deg,#00c853,#009624);
-  font-size:24px;
-  padding:22px;
-}
-
-.acil{
-  background:linear-gradient(135deg,#ff1744,#d50000);
-}
-
-.cam{
-  background:linear-gradient(135deg,#2979ff,#1565c0);
-}
-
-.park{
-  background:linear-gradient(135deg,#ff9100,#e65100);
-}
-
-#mesaj{
-  margin-top:20px;
-  font-weight:bold;
-  color:#d50000;
+  border-radius:10px;
   font-size:16px;
+  cursor:pointer;
 }
-
-.loading{
-  font-size:18px;
-  font-weight:bold;
-  margin-top:20px;
+.ara{background:#28a745;color:white;font-size:18px;}
+.diger{background:#007bff;color:white;}
+input{
+  width:100%;
+  padding:12px;
+  margin:10px 0;
 }
-
 </style>
 </head>
-
 <body>
 
-<div id="container">
-
-<h2>Araç Sahibi İletişim</h2>
-
-<div id="plakaBox">Yükleniyor...</div>
-
-<div id="butonlar" style="display:none;">
-
-<button class="btn ara" onclick="araTel()">
-📞 SÜRÜCÜYÜ ARA
-</button>
-
-<button class="btn acil" onclick="mesajGonder('acil')">
-🚨 ACİL DURUM
-</button>
-
-<button class="btn cam" onclick="mesajGonder('cam')">
-🪟 CAM AÇIK
-</button>
-
-<button class="btn park" onclick="mesajGonder('park')">
-🚗 YANLIŞ PARK
-</button>
-
-</div>
-
-<div id="mesaj"></div>
-
-</div>
+<div id="app"></div>
 
 <script>
+const API="https://script.google.com/macros/s/AKfycbz9kyJyiI3dQSSP3W5ltOUabPRV2uHarMYPsxwSGrI53KMMRLC5jGSjb4JBcUixdwnCew/exec";
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby0oj4SZ_hdy1m8j3TGf8_G2XqmgjEcPIP811bUP-biQyKgrOoHDf4IotNb6lBh265uAw/exec";
+const qr = new URLSearchParams(location.search).get("qr");
 
-let telefon = "";
-let plaka = "";
-
-const params = new URLSearchParams(window.location.search);
-plaka = params.get("id");
-
-if(plaka){
-
-  plaka = plaka.toUpperCase().replace(/\s/g,'');
-  document.getElementById("plakaBox").innerText = plaka;
-
-  fetch(WEB_APP_URL + "?id=" + plaka)
-  .then(res => res.json())
-  .then(data => {
-
-    if(data.kayit){
-
-      if(data.aktif && data.aktif.toUpperCase() == "AKTIF"){
-
-        telefon = data.telefon;
-        document.getElementById("butonlar").style.display="block";
-        document.getElementById("mesaj").innerText="";
-
-      }else{
-        document.getElementById("mesaj").innerText = "Araç sahibi şu anda pasif durumda.";
-      }
-
-    }else{
-      document.getElementById("mesaj").innerText = "Bu plakaya ait kayıt bulunamadı.";
-    }
-
-  })
-  .catch(()=>{
-    document.getElementById("mesaj").innerText="Sunucuya bağlanılamadı.";
-  });
-
+if(!qr){
+  document.getElementById("app").innerHTML="QR parametresi yok";
 }else{
-  document.getElementById("plakaBox").innerText="Plaka bulunamadı";
+  fetch(API+"?qr="+qr)
+  .then(r=>r.json())
+  .then(data=>{
+    if(!data.kayit){
+      kayitForm();
+    }else{
+      if(data.durum=="AKTIF"){
+        aktifEkran(data);
+      }else{
+        pasifEkran();
+      }
+    }
+  });
 }
 
-function araTel(){
-  window.location.href = "tel:" + telefon;
+function kayitForm(){
+document.getElementById("app").innerHTML=`
+<div class="card">
+<h2>Kayıt Ol</h2>
+<input id="plaka" placeholder="Plaka">
+<input id="tel" placeholder="Telefon">
+<input id="sifre" placeholder="Şifre">
+<button onclick="kaydet()">Kaydet</button>
+</div>`;
 }
 
-function mesajGonder(tip){
-
-  let mesaj = "";
-
-  if(tip=="acil"){
-    mesaj = "ACİL DURUM! " + plaka + " plakalı aracınızla ilgili acil bir durum var.";
-  }
-
-  if(tip=="cam"){
-    mesaj = plaka + " plakalı aracınızın camı açık görünüyor.";
-  }
-
-  if(tip=="park"){
-    mesaj = plaka + " plakalı aracınız hatalı park etmiş olabilir.";
-  }
-
-  let link = "https://wa.me/90" + telefon + "?text=" + encodeURIComponent(mesaj);
-  window.open(link,"_blank");
+function kaydet(){
+fetch(API,{
+method:"POST",
+body:JSON.stringify({
+islem:"kayit",
+qr:qr,
+plaka:plaka.value,
+telefon:tel.value,
+sifre:sifre.value
+})
+}).then(()=>location.reload());
 }
 
+function aktifEkran(data){
+document.getElementById("app").innerHTML=`
+<div class="card">
+<div class="plaka">${data.plaka}</div>
+<button class="ara" onclick="ara('${data.telefon}')">Sürücüyü Ara</button>
+<button class="diger" onclick="wp('${data.telefon}','Camınız açık')">Cam Açık</button>
+<button class="diger" onclick="wp('${data.telefon}','Acil durum')">Acil</button>
+<button class="diger" onclick="wp('${data.telefon}','Yanlış park')">Yanlış Park</button>
+</div>`;
+}
+
+function pasifEkran(){
+document.getElementById("app").innerHTML=`
+<div class="card">
+<h2>Bu araç şu an pasif durumda</h2>
+</div>`;
+}
+
+function ara(tel){
+location.href="tel:+90"+tel;
+}
+
+function wp(tel,msg){
+location.href=`https://wa.me/90${tel}?text=${encodeURIComponent(msg)}`;
+}
 </script>
-
 </body>
 </html>
-
-
-
